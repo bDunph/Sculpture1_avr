@@ -11,9 +11,13 @@
 #define _stricmp strcasecmp
 #include <strings.h>
 
+#include "openvr/openvr_capi.h"
+#include "openvr/openvr.h"
+
 #elif _WIN32 
 #include "glfw3.h"
 #include "pathtools.h"
+#include "openvr.h"
 #endif
 
 //-----------------------------------------

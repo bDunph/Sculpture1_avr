@@ -38,6 +38,8 @@ public:
 	bool TempEsc();
 	void IncreaseRotationValue(std::unique_ptr<int>& pVal);
 
+	
+
 private:
 
 	glm::vec4 m_vFarPlaneDimensions;
@@ -166,6 +168,13 @@ private:
 
 	float m_fDeltaTime;
 	float m_fLastFrame;	
+
+	//menger sponge
+	GLuint mengerShaderProg;
+
+	
+	FiveCell::RaymarchData raymarchData;
+	
 };
 
 

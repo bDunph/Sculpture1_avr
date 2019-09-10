@@ -18,6 +18,8 @@
 #define _countof(x) (sizeof(x)/sizeof((x)[0]))
 #endif
 
+#define PI 3.14159265
+
 //******** TERRIBLE GLOBAL VARIABLES HAVE TO FIX THIS WHEN I GET A CHANCE**********//
 bool m_bFirstMouse = true;
 double m_dLastX = 320.0f;
@@ -176,9 +178,18 @@ bool Graphics::BInitGL(bool fullscreen){
 		std::cout << "quadShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
+	mengerShaderProg = BCreateSceneShaders("menger");
+	if(mengerShaderProg == NULL){
+		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
+		return false;
+	}
 	std::string csdFileName = "mode5cell.csd";
 	if(!fiveCell.setup(csdFileName, skyboxShaderProg, soundObjShaderProg, groundPlaneShaderProg, fiveCellShaderProg, quadShaderProg)) {
 		std::cout << "fiveCell setup failed: Graphics BInitGL" << std::endl;
+		return false;
+	}
+	if(!fiveCell.BSetupRaymarchQuad(mengerShaderProg)){
+		std::cout << "raymarch quad failed setup: Graphics::BInitGL" << std::endl;
 		return false;
 	}
 
@@ -928,6 +939,9 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		currentEyeMatrix = vrm->GetCurrentEyeMatrix(nEye);
 		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 		cameraPosition = glm::vec3(currentViewMatrix[0][3], currentViewMatrix[1][3], currentViewMatrix[2][3]);
+
+		glm::vec4 m_vFarPlaneDimensions = vrm->GetFarPlaneDimensions(nEye);
+		raymarchData.tanFovYOver2 = m_vFarPlaneDimensions.w;
 	} else {
 		//*** put manual matrices here***//
 		currentProjMatrix = m_matDevProjMatrix;  
@@ -936,6 +950,9 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		currentEyeMatrix = glm::mat4(1.0f);
 		cameraFront = m_vec3DevCamFront;
 		cameraPosition = m_vec3DevCamPos;
+
+		double fovYRadians = 45.0f * (180.0f / PI);
+		raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
 	}
 
 	////draw texture quad
@@ -954,11 +971,18 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
 
+	//update stuff for raymarching shader
+
+	raymarchData.aspect = static_cast<float>(m_nRenderWidth) / static_cast<float>(m_nRenderHeight);
+
+	//double secondsElapsed = difftime(time(0), m_tStartTime);
+	//raymarchData.modAngle = fmod((float)glfwGetTime(), 360.0); 	
+
 	//update variables for fiveCell
 	fiveCell.update(currentProjMatrix, currentViewMatrix, cameraFront, cameraPosition);
 	
 	//draw fiveCell scene
-	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix);
+	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg);
 
 	if(!m_bDevMode && vrm){
 	

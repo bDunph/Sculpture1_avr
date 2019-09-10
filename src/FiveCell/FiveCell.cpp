@@ -834,6 +834,65 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 
 }
 
+bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
+{
+//	float sceneWidth = FConvertUint32ToFloat(m_nRenderWidth);
+//	float sceneHeight = FConvertUint32ToFloat(m_nRenderHeight);
+//	float vertPosX = sceneWidth * 0.5f;
+//	float vertPosY = sceneHeight * 0.5f;
+
+//	float sceneVerts[] = {
+//		-vertPosX, -vertPosY, 0.0f,
+//		vertPosX, -vertPosY, 0.0f,
+//		-vertPosX, vertPosY, 0.0f,
+//		-vertPosX, vertPosY, 0.0f,
+//		vertPosX, -vertPosY, 0.0f,
+//		vertPosX, vertPosY, 0.0f		
+//	};
+	
+	float sceneVerts[] = {
+		-1.0f, -1.0f, 0.0f,
+		1.0f, -1.0f, 0.0f,
+		-1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f
+	};
+	m_uiNumSceneVerts = _countof(sceneVerts);
+
+	unsigned int sceneIndices[] = {
+		0, 1, 2,
+		2, 1, 3
+	};
+	m_uiNumSceneIndices = _countof(sceneIndices);
+
+	glGenVertexArrays(1, &m_uiglSceneVAO);
+	glBindVertexArray(m_uiglSceneVAO);
+
+	GLuint m_uiglSceneVBO;
+	glGenBuffers(1, &m_uiglSceneVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_uiglSceneVBO);
+	glBufferData(GL_ARRAY_BUFFER, m_uiNumSceneVerts * sizeof(float), sceneVerts, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_uiglIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_uiNumSceneIndices * sizeof(unsigned int), sceneIndices, GL_STATIC_DRAW);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	glBindVertexArray(0);
+	glDisableVertexAttribArray(0);
+
+	m_gliAspectLocation = glGetUniformLocation(shaderProg, "aspect");
+	m_gliTanFovLocation = glGetUniformLocation(shaderProg, "fovYScale");
+	m_gliViewMatrixLocation = glGetUniformLocation(shaderProg, "view");
+	m_gliProjectionMatrixLocation = glGetUniformLocation(shaderProg, "proj");
+	m_gliEyeMatLocation = glGetUniformLocation(shaderProg, "eyeMat");
+	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
+	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
+
+	return true;
+}
+
 void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, glm::vec3 camPos){
 
 //***********************************************************************************************************
@@ -977,9 +1036,11 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, 
 	//float rotAngle = glfwGetTime() * 0.2f;
 	//glm::mat4 fiveCellRotationMatrix3D = glm::rotate(modelMatrix, rotAngle, glm::vec3(0, 1, 0)) ;
 	//fiveCellModelMatrix = scale5CellMatrix;
+
+	
 }
 
-void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat){
+void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg){
 		
 //**********************************************************************************************************
 // Draw Stuff Here
@@ -1132,6 +1193,22 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//	soundObjects[i].draw(projMat, viewEyeMat, lightPos, light2Pos, camPosPerEye, soundObjProg);
 	//}	
 		
+	//draw menger sponge
+	float mengerAspect = raymarchData.aspect;
+	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
+
+	glUseProgram(mengerProg);
+	glUniform1f(m_gliAspectLocation, mengerAspect);
+	glUniform1f(m_gliTanFovLocation, mengerTanFovYOver2);
+	glUniformMatrix4fv(m_gliViewMatrixLocation, 1, GL_FALSE, &viewMat[0][0]);
+	glUniformMatrix4fv(m_gliProjectionMatrixLocation, 1, GL_FALSE, &projMat[0][0]);
+	glUniformMatrix4fv(m_gliEyeMatLocation, 1, GL_FALSE, &eyeMat[0][0]);
+	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
+	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
+
+	glBindVertexArray(m_uiglSceneVAO);
+	glDrawElements(GL_TRIANGLES, m_uiNumSceneIndices * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
+	glBindVertexArray(0);
 	
 	//update other events like input handling
 	//glfwPollEvents();

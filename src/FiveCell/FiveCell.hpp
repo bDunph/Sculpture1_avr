@@ -11,9 +11,18 @@
 class FiveCell {
 
 public:
+	
+	//struct to hold data for raymarch shader
+	struct RaymarchData{
+		float tanFovYOver2;
+		float aspect;
+		//float modAngle;
+	};
+
 	bool setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GLuint groundPlaneProg, GLuint fiveCellProg, GLuint quadShaderProg);
+	bool BSetupRaymarchQuad(GLuint shaderProg);
 	void update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, glm::vec3 camPos);
-	void draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat);
+	void draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
 	void exit();
 
 private:
@@ -110,5 +119,21 @@ private:
 	MYFLT* vert3Vol;
 	MYFLT* vert4Vol;
 	MYFLT* hrtfVals[15];
+
+	//raymarching quad
+	unsigned int m_uiNumSceneVerts;
+	unsigned int m_uiNumSceneIndices;
+
+	GLuint m_uiglSceneVAO;
+	GLuint m_uiglSceneVBO;
+	GLuint m_uiglIndexBuffer;
+
+	GLint m_gliAspectLocation;
+	GLint m_gliTanFovLocation;
+	GLint m_gliProjectionMatrixLocation;
+	GLint m_gliEyeMatLocation;
+	GLint m_gliRotation3DLocation;
+	GLint m_gliTimerLocation;
+	GLint m_gliViewMatrixLocation;
 };
 #endif
