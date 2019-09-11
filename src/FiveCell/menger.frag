@@ -8,12 +8,15 @@ const float EPSILON = 0.0001;
 uniform mat4 proj;
 uniform mat4 eyeMat;
 uniform mat4 view;
-
-out vec4 fragColor; 
+//uniform mat4 MVEPMat;
 
 in vec4 eye;
 in vec4 worldDir;
 in vec4 cameraForward;
+//in vec4 nearPos;
+//in vec4 farPos;
+
+out vec4 fragColor; 
 
 ///**
 // * Constructive solid geometry intersection operation on SDF-calculated distances.
@@ -206,6 +209,43 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
 
 void main()
 {
+
+	//************* code from https://encreative.blogspot.com/2019/05/computing-ray-origin-and-direction-from.html ************//
+
+	//vec3 rayOrigin = nearPos.xyz / nearPos.w;
+	//vec3 rayEnd = farPos.xyz / farPos.w;
+	//vec3 rayDir = rayEnd - rayOrigin;
+	//rayDir = normalize(rayDir);	
+
+    	//float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST);
+    
+    	//if (dist > MAX_DIST - EPSILON) {
+        //	// Didn't hit anything
+        //	fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+	//		return;
+    	//}
+    
+    	//// The closest point on the surface to the eyepoint along the view ray
+    	//vec3 p = (rayOrigin + dist) * rayDir;
+
+    	//// Use the surface normal as the ambient color of the material
+    	//vec3 K_a = (estimateNormal(p) + vec3(1.0)) / 2.0;
+    	//vec3 K_d = K_a;
+    	//vec3 K_s = vec3(1.0, 1.0, 1.0);
+    	//float shininess = 10.0;
+    
+    	//vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin);
+    
+    	//fragColor = vec4(color, 1.0);
+
+	//vec4 pClipSpace =  MVEPMat * vec4(p, 1.0);
+	//vec3 pNdc = vec3(pClipSpace.x / pClipSpace.w, pClipSpace.y / pClipSpace.w, pClipSpace.z / pClipSpace.w);
+	//float ndcDepth = pNdc.z;
+	//
+	//float d = ((gl_DepthRange.diff * ndcDepth) + gl_DepthRange.near + gl_DepthRange.far) / 2.0; 
+	//gl_FragDepth = d;
+
+//******************************************************************************************
 	vec3 dir = normalize(worldDir.xyz);
     	float dist = shortestDistanceToSurface(eye.xyz, dir, MIN_DIST, MAX_DIST);
     

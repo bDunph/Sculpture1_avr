@@ -887,6 +887,10 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	m_gliViewMatrixLocation = glGetUniformLocation(shaderProg, "view");
 	m_gliProjectionMatrixLocation = glGetUniformLocation(shaderProg, "proj");
 	m_gliEyeMatLocation = glGetUniformLocation(shaderProg, "eyeMat");
+	//m_gliMVEPMatrixLocation = glGetUniformLocation(shaderProg, "MVEPMat");
+	//m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
+	//m_gliMVEMatrixLocation = glGetUniformLocation(shaderProg, "MVEMat");
+	//m_gliInverseMVELocation = glGetUniformLocation(shaderProg, "InvMVE");
 	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
 	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
 
@@ -1048,6 +1052,12 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 
 	glm::mat4 viewEyeMat = eyeMat * viewMat;
 
+	//matrices for raymarch shaders
+	glm::mat4 modelViewEyeMat = eyeMat * viewMat * modelMatrix;
+	glm::mat4 inverseMVEMat = glm::inverse(modelViewEyeMat);
+	glm::mat4 modelViewEyeProjectionMat = projMat * eyeMat * viewMat * modelMatrix;
+	glm::mat4 inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
+
 	camPosPerEye = glm::vec3(viewEyeMat[0][3], viewEyeMat[1][3], viewEyeMat[2][3]);
 
 	//draw 4D polytope	
@@ -1203,6 +1213,10 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glUniformMatrix4fv(m_gliViewMatrixLocation, 1, GL_FALSE, &viewMat[0][0]);
 	glUniformMatrix4fv(m_gliProjectionMatrixLocation, 1, GL_FALSE, &projMat[0][0]);
 	glUniformMatrix4fv(m_gliEyeMatLocation, 1, GL_FALSE, &eyeMat[0][0]);
+	//glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
+	//glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
+	//glUniformMatrix4fv(m_gliMVEMatrixLocation, 1, GL_FALSE, &modelViewEyeMat[0][0]);
+	//glUniformMatrix4fv(m_gliInverseMVELocation, 1, GL_FALSE, &inverseMVEMat[0][0]);
 	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
 	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
 

@@ -952,7 +952,8 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		cameraPosition = m_vec3DevCamPos;
 
 		double fovYRadians = 45.0f * (180.0f / PI);
-		raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
+		//raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
+		raymarchData.tanFovYOver2 = tan(fovYRadians / 2.0f);		
 	}
 
 	////draw texture quad

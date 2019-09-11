@@ -135,5 +135,9 @@ private:
 	GLint m_gliRotation3DLocation;
 	GLint m_gliTimerLocation;
 	GLint m_gliViewMatrixLocation;
+	GLint m_gliMVEPMatrixLocation;
+	GLint m_gliInverseMVEPLocation;
+	GLint m_gliMVEMatrixLocation;
+	GLint m_gliInverseMVELocation;
 };
 #endif
