@@ -176,6 +176,8 @@ private:
 	FiveCell::RaymarchData raymarchData;
 	float m_fFov;
 	
+	//rapidmix
+	bool m_bRecord;
 };
 
 

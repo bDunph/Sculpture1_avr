@@ -52,7 +52,8 @@ Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	m_bDebugOpenGL(false),
 	m_unImageCount(0),
 	m_fDeltaTime(0.0),
-	m_fLastFrame(0.0)
+	m_fLastFrame(0.0),
+	m_bRecord(false)
 	//m_uiFrameNumber(0)
 {
 	m_bDebugOpenGL = flagPtr->flagDebugOpenGL;
@@ -178,7 +179,7 @@ bool Graphics::BInitGL(bool fullscreen){
 		std::cout << "quadShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
-	mengerShaderProg = BCreateSceneShaders("menger");
+	mengerShaderProg = BCreateSceneShaders("mengerAlt");
 	if(mengerShaderProg == NULL){
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
@@ -681,6 +682,15 @@ void Graphics::DevProcessInput(GLFWwindow *window){
     	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
 	
+	//record data
+	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
+		m_bRecord = true;
+		//std::cout << "RECORD ON" << std::endl;
+	} else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE){
+		m_bRecord = false;
+		//std::cout << "RECORD OFF" << std::endl;
+	}
+
 	if(m_vec3DevCamPos.y < 0.0f || m_vec3DevCamPos.y > 0.0f) m_vec3DevCamPos.y = 0.0f;
 }
 //-----------------------------------------------------------------------------
@@ -955,6 +965,14 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		double fovYRadians = m_fFov * (PI / 180.0f);
 		//raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
 		raymarchData.tanFovYOver2 = tan(fovYRadians / 2.0f);		
+
+		//rapidmix data
+		if(m_bRecord){
+			std::vector<glm::vec3> input;
+			std::vector<double> output;
+	
+			input.push_back(cameraPosition);
+		//********* continue here - need to grab some audio and visual parameters and add to output vector *************//
 	}
 
 	////draw texture quad

@@ -31,6 +31,11 @@ if(APPLE)
 		message(FATAL_ERROR "OpenVR not found")
 	endif()
 
+	find_library(RAPIDMIX RAPID-MIX_API)
+	if(NOT RAPIDMIX)
+		message(FATAL_ERROR "Rapid-Mix not found")
+	endif()
+
 elseif(WIN32)
 
 	find_library(GLEW_WIN glew32 "${PROJECT_SOURCE_DIR}/../lib")
@@ -127,7 +132,7 @@ endif()
 
 if(APPLE)
 	add_executable(avr main.cpp CsoundSession.cpp CsoundSession.hpp lodepng.cpp lodepng.h)
-	target_link_libraries(avr AvrApp VR ${OPENVR} Visual FiveCell GLEW::GLEW glfw OpenGL::GL ${CSOUND_API} ${CSOUND_PERF_THREAD})
+	target_link_libraries(avr AvrApp VR ${OPENVR} Visual FiveCell ${RAPIDMIX} GLEW::GLEW glfw OpenGL::GL ${CSOUND_API} ${CSOUND_PERF_THREAD})
 elseif(WIN32)
 	add_executable(avr main.cpp CsoundSession.cpp CsoundSession.hpp csPerfThread.cpp csPerfThread.hpp lodepng.cpp lodepng.h)
 	target_link_libraries(avr AvrApp VR OpenVR_target ValveTools Visual FiveCell Glew_target ${GLFW_WIN} ${OPENGL_gl_LIBRARY} Csound_target Libsndfile_target)
