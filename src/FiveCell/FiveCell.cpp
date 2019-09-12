@@ -851,16 +851,16 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //	};
 	
 	float sceneVerts[] = {
+		-1.0f, 1.0f, 0.0f,
 		-1.0f, -1.0f, 0.0f,
 		1.0f, -1.0f, 0.0f,
-		-1.0f, 1.0f, 0.0f,
 		1.0f, 1.0f, 0.0f
 	};
 	m_uiNumSceneVerts = _countof(sceneVerts);
 
 	unsigned int sceneIndices[] = {
 		0, 1, 2,
-		2, 1, 3
+		2, 3, 0
 	};
 	m_uiNumSceneIndices = _countof(sceneIndices);
 
@@ -882,17 +882,19 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
 
-	m_gliAspectLocation = glGetUniformLocation(shaderProg, "aspect");
-	m_gliTanFovLocation = glGetUniformLocation(shaderProg, "fovYScale");
-	m_gliViewMatrixLocation = glGetUniformLocation(shaderProg, "view");
-	m_gliProjectionMatrixLocation = glGetUniformLocation(shaderProg, "proj");
-	m_gliEyeMatLocation = glGetUniformLocation(shaderProg, "eyeMat");
-	//m_gliMVEPMatrixLocation = glGetUniformLocation(shaderProg, "MVEPMat");
-	//m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
-	//m_gliMVEMatrixLocation = glGetUniformLocation(shaderProg, "MVEMat");
-	//m_gliInverseMVELocation = glGetUniformLocation(shaderProg, "InvMVE");
+	//m_gliAspectLocation = glGetUniformLocation(shaderProg, "aspect");
+	//m_gliTanFovLocation = glGetUniformLocation(shaderProg, "fovYScale");
+	//m_gliViewMatrixLocation = glGetUniformLocation(shaderProg, "view");
+	//m_gliProjectionMatrixLocation = glGetUniformLocation(shaderProg, "proj");
+	//m_gliEyeMatLocation = glGetUniformLocation(shaderProg, "eyeMat");
+	m_gliMVEPMatrixLocation = glGetUniformLocation(shaderProg, "MVEPMat");
+	m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
+	m_gliMVEMatrixLocation = glGetUniformLocation(shaderProg, "MVEMat");
+	m_gliInverseMVELocation = glGetUniformLocation(shaderProg, "InvMVE");
 	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
 	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
+
+	raymarchQuadModelMatrix = glm::mat4(1.0f);
 
 	return true;
 }
@@ -1052,12 +1054,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 
 	glm::mat4 viewEyeMat = eyeMat * viewMat;
 
-	//matrices for raymarch shaders
-	glm::mat4 modelViewEyeMat = eyeMat * viewMat * modelMatrix;
-	glm::mat4 inverseMVEMat = glm::inverse(modelViewEyeMat);
-	glm::mat4 modelViewEyeProjectionMat = projMat * eyeMat * viewMat * modelMatrix;
-	glm::mat4 inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
-
+	
 	camPosPerEye = glm::vec3(viewEyeMat[0][3], viewEyeMat[1][3], viewEyeMat[2][3]);
 
 	//draw 4D polytope	
@@ -1204,19 +1201,26 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//}	
 		
 	//draw menger sponge
+
+	//matrices for raymarch shaders
+	glm::mat4 modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
+	glm::mat4 inverseMVEMat = glm::inverse(modelViewEyeMat);
+	glm::mat4 modelViewEyeProjectionMat = projMat * eyeMat * viewMat * raymarchQuadModelMatrix;
+	glm::mat4 inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
+
 	float mengerAspect = raymarchData.aspect;
 	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
 
 	glUseProgram(mengerProg);
-	glUniform1f(m_gliAspectLocation, mengerAspect);
-	glUniform1f(m_gliTanFovLocation, mengerTanFovYOver2);
-	glUniformMatrix4fv(m_gliViewMatrixLocation, 1, GL_FALSE, &viewMat[0][0]);
-	glUniformMatrix4fv(m_gliProjectionMatrixLocation, 1, GL_FALSE, &projMat[0][0]);
-	glUniformMatrix4fv(m_gliEyeMatLocation, 1, GL_FALSE, &eyeMat[0][0]);
-	//glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
-	//glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
-	//glUniformMatrix4fv(m_gliMVEMatrixLocation, 1, GL_FALSE, &modelViewEyeMat[0][0]);
-	//glUniformMatrix4fv(m_gliInverseMVELocation, 1, GL_FALSE, &inverseMVEMat[0][0]);
+	//glUniform1f(m_gliAspectLocation, mengerAspect);
+	//glUniform1f(m_gliTanFovLocation, mengerTanFovYOver2);
+	//glUniformMatrix4fv(m_gliViewMatrixLocation, 1, GL_FALSE, &viewMat[0][0]);
+	//glUniformMatrix4fv(m_gliProjectionMatrixLocation, 1, GL_FALSE, &projMat[0][0]);
+	//glUniformMatrix4fv(m_gliEyeMatLocation, 1, GL_FALSE, &eyeMat[0][0]);
+	glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
+	glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
+	glUniformMatrix4fv(m_gliMVEMatrixLocation, 1, GL_FALSE, &modelViewEyeMat[0][0]);
+	glUniformMatrix4fv(m_gliInverseMVELocation, 1, GL_FALSE, &inverseMVEMat[0][0]);
 	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
 	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
 

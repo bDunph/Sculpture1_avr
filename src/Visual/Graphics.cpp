@@ -195,7 +195,8 @@ bool Graphics::BInitGL(bool fullscreen){
 
 	//create matrices for devmode
 	if(m_bDevMode){
-		m_matDevProjMatrix = glm::perspective(45.0f, (float)m_nCompanionWindowWidth/ (float)m_nCompanionWindowHeight, 0.1f, 1000.0f);
+		m_fFov = 45.0f;
+		m_matDevProjMatrix = glm::perspective(m_fFov, (float)m_nCompanionWindowWidth/ (float)m_nCompanionWindowHeight, 0.1f, 1000.0f);
 		
 		//variables for view matrix
 		m_vec3DevCamPos = glm::vec3(0.0f, 0.0f, 3.0f);	
@@ -951,7 +952,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		cameraFront = m_vec3DevCamFront;
 		cameraPosition = m_vec3DevCamPos;
 
-		double fovYRadians = 45.0f * (180.0f / PI);
+		double fovYRadians = m_fFov * (PI / 180.0f);
 		//raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
 		raymarchData.tanFovYOver2 = tan(fovYRadians / 2.0f);		
 	}

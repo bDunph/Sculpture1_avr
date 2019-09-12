@@ -139,5 +139,7 @@ private:
 	GLint m_gliInverseMVEPLocation;
 	GLint m_gliMVEMatrixLocation;
 	GLint m_gliInverseMVELocation;
+
+	glm::mat4 raymarchQuadModelMatrix;
 };
 #endif
