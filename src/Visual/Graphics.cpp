@@ -52,8 +52,7 @@ Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	m_bDebugOpenGL(false),
 	m_unImageCount(0),
 	m_fDeltaTime(0.0),
-	m_fLastFrame(0.0),
-	m_bRecord(false)
+	m_fLastFrame(0.0)
 	//m_uiFrameNumber(0)
 {
 	m_bDebugOpenGL = flagPtr->flagDebugOpenGL;
@@ -69,6 +68,8 @@ Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) :
 
 	//m_tStartTime = time(0);
 
+	machineLearning.bRandomParams = false;
+	machineLearning.bRecord = false;
 }
 
 
@@ -184,7 +185,7 @@ bool Graphics::BInitGL(bool fullscreen){
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
-	std::string csdFileName = "mode5cell.csd";
+	std::string csdFileName = "sculpture1.csd";
 	if(!fiveCell.setup(csdFileName, skyboxShaderProg, soundObjShaderProg, groundPlaneShaderProg, fiveCellShaderProg, quadShaderProg)) {
 		std::cout << "fiveCell setup failed: Graphics BInitGL" << std::endl;
 		return false;
@@ -207,7 +208,8 @@ bool Graphics::BInitGL(bool fullscreen){
 		//values for framebuffer setup to make up for no headset
 		m_nRenderWidth = m_nCompanionWindowWidth;
 		m_nRenderHeight = m_nCompanionWindowHeight; 
-}	
+	}
+	
 
 //***********************************************************************************************
 // Quad to test texture rendering
@@ -684,12 +686,19 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 	
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
-		m_bRecord = true;
+		machineLearning.bRecord = true;
 		//std::cout << "RECORD ON" << std::endl;
 	} else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_RELEASE){
-		m_bRecord = false;
+		machineLearning.bRecord = false;
 		//std::cout << "RECORD OFF" << std::endl;
 	}
+
+	//randomise parameters
+	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS){
+		machineLearning.bRandomParams = true;
+		//std::cout << "RANDOM" << std::endl;
+	}
+	machineLearning.bRandomParams = false;
 
 	if(m_vec3DevCamPos.y < 0.0f || m_vec3DevCamPos.y > 0.0f) m_vec3DevCamPos.y = 0.0f;
 }
@@ -967,12 +976,13 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		raymarchData.tanFovYOver2 = tan(fovYRadians / 2.0f);		
 
 		//rapidmix data
-		if(m_bRecord){
+		if(machineLearning.bRecord){
 			std::vector<glm::vec3> input;
 			std::vector<double> output;
 	
 			input.push_back(cameraPosition);
 		//********* continue here - need to grab some audio and visual parameters and add to output vector *************//
+		}
 	}
 
 	////draw texture quad
@@ -999,7 +1009,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//raymarchData.modAngle = fmod((float)glfwGetTime(), 360.0); 	
 
 	//update variables for fiveCell
-	fiveCell.update(currentProjMatrix, currentViewMatrix, cameraFront, cameraPosition);
+	fiveCell.update(currentProjMatrix, currentViewMatrix, currentEyeMatrix, cameraFront, cameraPosition, machineLearning);
 	
 	//draw fiveCell scene
 	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg);

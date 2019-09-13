@@ -38,7 +38,7 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	session->SetOption("-b -128"); 
 	session->SetOption("-B 1024");
 #endif
-	for(int i = 0; i < 5; i++){
+	for(int i = 0; i < 1; i++){
 		std::string val1 = "azimuth" + std::to_string(i);
 		const char* azimuth = val1.c_str();	
 		if(session->GetChannelPtr(hrtfVals[3 * i], azimuth, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
@@ -60,35 +60,35 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	}
 
 //********* output values from csound to avr *******************//
-	const char* vert0 = "vert0";
-	if(session->GetChannelPtr(vert0Vol, vert0, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-		std::cout << "Csound output value vert0Vol not available" << std::endl;
-		return false;
-	} 
+	//const char* vert0 = "vert0";
+	//if(session->GetChannelPtr(vert0Vol, vert0, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+	//	std::cout << "Csound output value vert0Vol not available" << std::endl;
+	//	return false;
+	//} 
 
-	const char* vert1 = "vert1";
-	if(session->GetChannelPtr(vert1Vol, vert1, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-		std::cout << "Csound output value vert1Vol not available" << std::endl;
-		return false;
-	}
+	//const char* vert1 = "vert1";
+	//if(session->GetChannelPtr(vert1Vol, vert1, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+	//	std::cout << "Csound output value vert1Vol not available" << std::endl;
+	//	return false;
+	//}
 
-	const char* vert2 = "vert2";
-	if(session->GetChannelPtr(vert2Vol, vert2, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-		std::cout << "Csound output value vert2Vol not available" << std::endl;
-		return false;
-	}
+	//const char* vert2 = "vert2";
+	//if(session->GetChannelPtr(vert2Vol, vert2, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+	//	std::cout << "Csound output value vert2Vol not available" << std::endl;
+	//	return false;
+	//}
 
-	const char* vert3 = "vert3";
-	if(session->GetChannelPtr(vert3Vol, vert3, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-		std::cout << "Csound output value vert3Vol not available" << std::endl;
-		return false;
-	}
+	//const char* vert3 = "vert3";
+	//if(session->GetChannelPtr(vert3Vol, vert3, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+	//	std::cout << "Csound output value vert3Vol not available" << std::endl;
+	//	return false;
+	//}
 
-	const char* vert4 = "vert4";
-	if(session->GetChannelPtr(vert4Vol, vert4, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-		std::cout << "Csound output value vert4Vol not available" << std::endl;
-		return false;
-	}
+	//const char* vert4 = "vert4";
+	//if(session->GetChannelPtr(vert4Vol, vert4, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+	//	std::cout << "Csound output value vert4Vol not available" << std::endl;
+	//	return false;
+	//}
 //**********************************************************
 
 	//glEnable(GL_DEPTH_TEST);
@@ -899,13 +899,67 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	return true;
 }
 
-void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, glm::vec3 camPos){
+//***********************************************************************************************
+// Cube signed distance function to calculate world position for audio location 
+//***********************************************************************************************
+float FiveCell::cubeSDF(glm::vec3 samplePoint){
+	
+	glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
+	
+	glm::vec3 d = glm::abs(samplePoint) - glm::vec3(size.x / 2.0, size.y / 2.0, size.z / 2.0);
+    
+    	// Assuming samplePoint is inside the cube, how far is it from the surface?
+    	// Result will be negative or zero. Because the point is assumed inside the cube, 
+	// the components of d will be negative values. This means taking the max between
+	// them is checking which side of the cube is closest as the bigger value will
+	// be closer to 0. The the min value is taken between the resulting distance and 0.
+    	float insideDistance = fmin(fmax(d.x, fmax(d.y, d.z)), 0.0);
+    	
+    	// Assuming p is outside the cube, how far is it from the surface?
+    	// Result will be positive or zero.
+    	float outsideDistance = glm::length(glm::max(d, glm::vec3(0.0)));
+    	
+    	return insideDistance + outsideDistance;
+}
+
+//***********************************************************************************************
+// Calculate distance to raymarched cube 
+//***********************************************************************************************
+
+float FiveCell::distanceToObject(glm::vec3 origin, glm::vec3 direction){
+
+	float minDist = 0.0f;
+	float maxDist = 100.0f;
+	unsigned int maxMarchingSteps = 255;
+	float epsilon = 0.0001f;
+
+	float depth = minDist;
+
+    for (int i = 0; i < maxMarchingSteps; i++) {
+        float dist = cubeSDF(origin + depth * direction);
+        if (dist < epsilon) {
+		return depth;
+        }
+        depth += dist;
+        if (depth >= maxDist) {
+            return maxDist;
+        }
+    }
+    return maxDist;
+}
+
+void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning){
 
 //***********************************************************************************************************
 // Update Stuff Here
 //*********************************************************************************************************
 
-	
+	//matrices for raymarch shaders
+	modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
+	inverseMVEMat = glm::inverse(modelViewEyeMat);
+	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * raymarchQuadModelMatrix;
+	inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
+
 	//for(int i = 0; i < 5; i++){
 	//	std::cout << std::to_string(i) << " --- " << std::to_string(vertArray5Cell[i].x) << " : " << std::to_string(vertArray5Cell[i].y) << " : " << std::to_string(vertArray5Cell[i].z) << " : " << std::to_string(vertArray5Cell[i].w) << std::endl;
 	//}
@@ -921,65 +975,86 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, 
 
 	//float rotVal = glm::radians(45.0f);
 	//rotation around W axis
-	rotationZW = glm::mat4(
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, cos(glfwGetTime() * 0.2f), -sin(glfwGetTime() * 0.2f),
-		0.0f, 0.0f, sin(glfwGetTime() * 0.2f), cos(glfwGetTime() * 0.2f)
-	);
+	//rotationZW = glm::mat4(
+	//	1.0f, 0.0f, 0.0f, 0.0f,
+	//	0.0f, 1.0f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, cos(glfwGetTime() * 0.2f), -sin(glfwGetTime() * 0.2f),
+	//	0.0f, 0.0f, sin(glfwGetTime() * 0.2f), cos(glfwGetTime() * 0.2f)
+	//);
 
-	rotationXW = glm::mat4(	
-		cos(glfwGetTime() * 0.2f), 0.0f, 0.0f, sin(glfwGetTime() * 0.2f),
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f, 
-		-sin(glfwGetTime() * 0.2f), 0.0f, 0.0f, cos(glfwGetTime() * 0.2f) 
-	);
+	//rotationXW = glm::mat4(	
+	//	cos(glfwGetTime() * 0.2f), 0.0f, 0.0f, sin(glfwGetTime() * 0.2f),
+	//	0.0f, 1.0f, 0.0f, 0.0f,
+	//	0.0f, 0.0f, 1.0f, 0.0f, 
+	//	-sin(glfwGetTime() * 0.2f), 0.0f, 0.0f, cos(glfwGetTime() * 0.2f) 
+	//);
 
-	rotationYW = glm::mat4(	
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, cos(glfwGetTime() * 0.2f), 0.0f, -sin(glfwGetTime() * 0.2f),
-		0.0f, 0.0f, 1.0f, 0.0f, 
-		0.0f, sin(glfwGetTime() * 0.2f), 0.0f, cos(glfwGetTime() * 0.2f)
-	);
-	//coords of verts to use for hrtf calculations 
-	glm::vec3 projectedVerts [5];
-	float projectionDistance = 2.0f;
-	//for(int i = 0; i < _countof(vertArray); i++){
-		
-	//get values from csound
-	float vert0AudioSig = *vert0Vol;
-	float vert1AudioSig = *vert1Vol;
-	float vert2AudioSig = *vert2Vol;
-	float vert3AudioSig = *vert3Vol;
-	float vert4AudioSig = *vert4Vol;
-	//std::cout << vert0AudioSig << std::endl;		
+	//rotationYW = glm::mat4(	
+	//	1.0f, 0.0f, 0.0f, 0.0f,
+	//	0.0f, cos(glfwGetTime() * 0.2f), 0.0f, -sin(glfwGetTime() * 0.2f),
+	//	0.0f, 0.0f, 1.0f, 0.0f, 
+	//	0.0f, sin(glfwGetTime() * 0.2f), 0.0f, cos(glfwGetTime() * 0.2f)
+	//);
+	////coords of verts to use for hrtf calculations 
+	//glm::vec3 projectedVerts [5];
+	//float projectionDistance = 2.0f;
+	////for(int i = 0; i < _countof(vertArray); i++){
+	//	
+	////get values from csound
+	//float vert0AudioSig = *vert0Vol;
+	//float vert1AudioSig = *vert1Vol;
+	//float vert2AudioSig = *vert2Vol;
+	//float vert3AudioSig = *vert3Vol;
+	//float vert4AudioSig = *vert4Vol;
+	////std::cout << vert0AudioSig << std::endl;		
 
-	vertRms[0] = vert0AudioSig;
-	vertRms[1] = vert1AudioSig;
-	vertRms[2] = vert2AudioSig;
-	vertRms[3] = vert3AudioSig;
-	vertRms[4] = vert4AudioSig;
+	//vertRms[0] = vert0AudioSig;
+	//vertRms[1] = vert1AudioSig;
+	//vertRms[2] = vert2AudioSig;
+	//vertRms[3] = vert3AudioSig;
+	//vertRms[4] = vert4AudioSig;
 
-	for(int i = 0; i < 5; i++){
+	//for(int i = 0; i < 5; i++){
 
-		glm::vec4 rotatedVert = rotationYW * rotationZW * rotationXW * vertArray5Cell[i];
+		//glm::vec4 rotatedVert = rotationYW * rotationZW * rotationXW * vertArray5Cell[i];
 
 		//std::cout << std::to_string(vertArray[i].x) << " : " << std::to_string(vertArray[i].y) << " : " << std::to_string(vertArray[i].z) << " : " << std::to_string(vertArray[i].w) << std::endl;
 
-		float projectedPointX = rotatedVert.x / (projectionDistance - rotatedVert.w); 	
-		float projectedPointY = rotatedVert.y / (projectionDistance - rotatedVert.w); 	
-		float projectedPointZ = rotatedVert.z / (projectionDistance - rotatedVert.w); 	
+		//float projectedPointX = rotatedVert.x / (projectionDistance - rotatedVert.w); 	
+		//float projectedPointY = rotatedVert.y / (projectionDistance - rotatedVert.w); 	
+		//float projectedPointZ = rotatedVert.z / (projectionDistance - rotatedVert.w); 	
  	
-		projectedVerts[i] = glm::vec3(projectedPointX, projectedPointY, projectedPointZ);
+		//projectedVerts[i] = glm::vec3(projectedPointX, projectedPointY, projectedPointZ);
 		//std::cout << i << " --- " << projectedVerts[i].x << " : " << projectedVerts[i].y << " : " << projectedVerts[i].z << std::endl;
 			
-		glm::vec4 posCameraSpace = viewMat * fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0f);
+		//glm::vec4 posCameraSpace = viewMat * fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0f);
+
+		//******** calculate origin and direction of raycast
+		// setting the ray origin at centre of screen
+		glm::vec4 rayPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec2 ndcCoord = glm::vec2(rayPos.x / rayPos.w, rayPos.y / rayPos.w); 
+		// calculate points on near and far planes
+		glm::vec4 near = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, -1.0f, 1.0f);
+		glm::vec4 far = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, 1.0f, 1.0f);
+		glm::vec3 origin = glm::vec3(near.x / near.w, near.y / near.w, near.z / near.w);	
+		glm::vec3 endPoint = glm::vec3(far.x / far.w, far.y / far.w, far.z / far.w);
+		glm::vec3 direction = endPoint - origin;
+		direction = glm::normalize(direction);	 	
+		float distToCubeSurface = distanceToObject(origin, direction);
+		float distToCubeCentre = distToCubeSurface + 0.5f;
+		glm::vec3 cubePosition = origin + distToCubeCentre * direction;
+		std::cout << "Cube Pos " << cubePosition.x << " - " << cubePosition.y << " - " << cubePosition.z << std::endl; 
+		
+		//position of menger cube
+		glm::vec4 posCameraSpace = eyeMat * viewMat * raymarchQuadModelMatrix * glm::vec4(cubePosition, 1.0f);		
 		//std::cout << i << " --- " << posCameraSpace.x << " : " << posCameraSpace.y << " : " << posCameraSpace.z << " : " << posCameraSpace.w << std::endl;
 
-		glm::vec4 posWorldSpace = fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0);
+		//glm::vec4 posWorldSpace = fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0);
+		//position of menger cube in world space
+		glm::vec4 posWorldSpace = raymarchQuadModelMatrix * glm::vec4(cubePosition, 1.0f);
 		//calculate azimuth and elevation values for hrtf
 		
-		glm::vec4 viewerPosCameraSpace = viewMat * glm::vec4(camPos, 1.0f);
+		glm::vec4 viewerPosCameraSpace = eyeMat * viewMat * glm::vec4(camPos, 1.0f);
 		glm::vec4 viewerPosWorldSpace = glm::vec4(camPos, 1.0f);;
 		//std::cout << i << " --> " << viewerPosWorldSpace.x << " : " << viewerPosWorldSpace.y << " : " << viewerPosWorldSpace.z << std::endl;
 
@@ -1026,16 +1101,19 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, 
 		//std::cout << i << " --> " << elevation << std::endl;
 		//float elevation = 0.0f;
 
-		*hrtfVals[3 * i] = (MYFLT)azimuth;
-		*hrtfVals[(3 * i) + 1] = (MYFLT)elevation;
-		*hrtfVals[(3 * i) + 2] = (MYFLT)rCamSpace;
+		//*hrtfVals[3 * i] = (MYFLT)azimuth;
+		//*hrtfVals[(3 * i) + 1] = (MYFLT)elevation;
+		//*hrtfVals[(3 * i) + 2] = (MYFLT)rCamSpace;
+		*hrtfVals[0] = (MYFLT)azimuth;
+		*hrtfVals[1] = (MYFLT)elevation;
+		*hrtfVals[2] = (MYFLT)rCamSpace;
 
 		//std::cout << std::to_string(i) << " --- " << std::to_string(*hrtfVals[3 * i]) << " : " << std::to_string(*hrtfVals[(3 * i) + 1]) << " : " << std::to_string(*hrtfVals[(3 * i) + 2]) << std::endl;
 		
 		//update sound object position
-		soundObjects[i].update(glm::vec3(posWorldSpace), vertRms[i]);	
+		//soundObjects[i].update(glm::vec3(posWorldSpace), vertRms[i]);	
 		//std::cout << std::to_string(projectedVerts[i].x) << " : " << std::to_string(projectedVerts[i].y) << " : " << std::to_string(projectedVerts[i].z) << std::endl;
-	}
+	//}
 
 	
 
@@ -1202,12 +1280,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 		
 	//draw menger sponge
 
-	//matrices for raymarch shaders
-	glm::mat4 modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
-	glm::mat4 inverseMVEMat = glm::inverse(modelViewEyeMat);
-	glm::mat4 modelViewEyeProjectionMat = projMat * eyeMat * viewMat * raymarchQuadModelMatrix;
-	glm::mat4 inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
-
+	
 	float mengerAspect = raymarchData.aspect;
 	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
 

@@ -19,9 +19,17 @@ public:
 		//float modAngle;
 	};
 
+	//bools to control machine learning
+	struct MachineLearning{
+		bool bRecord;
+		bool bRandomParams;
+	};
+
 	bool setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GLuint groundPlaneProg, GLuint fiveCellProg, GLuint quadShaderProg);
 	bool BSetupRaymarchQuad(GLuint shaderProg);
-	void update(glm::mat4 projMat, glm::mat4 viewMat, glm::vec3 camFront, glm::vec3 camPos);
+	float cubeSDF(glm::vec3 samplePoint);
+	float distanceToObject(glm::vec3 origin, glm::vec3 direction);
+	void update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning);
 	void draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
 	void exit();
 
@@ -141,5 +149,9 @@ private:
 	GLint m_gliInverseMVELocation;
 
 	glm::mat4 raymarchQuadModelMatrix;
+	glm::mat4 modelViewEyeMat;
+	glm::mat4 inverseMVEMat;
+	glm::mat4 modelViewEyeProjectionMat;
+	glm::mat4 inverseMVEPMat;
 };
 #endif

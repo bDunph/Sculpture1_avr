@@ -177,7 +177,7 @@ private:
 	float m_fFov;
 	
 	//rapidmix
-	bool m_bRecord;
+	FiveCell::MachineLearning machineLearning;
 };
 
 
