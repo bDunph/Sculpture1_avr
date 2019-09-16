@@ -6,6 +6,7 @@ const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 
 uniform mat4 MVEPMat;
+uniform float randSize; 
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -71,7 +72,7 @@ float crossSDF(vec3 p){
 }
 
 float sceneSDF(vec3 samplePoint) {    
-    float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
+    float cube = boxSDF((samplePoint), vec3(1.0, 1.0, 1.0));
     float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
     cube = differenceSDF(cube, cubeCross);
 
@@ -102,7 +103,7 @@ float sceneSDF(vec3 samplePoint) {
 float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
     float depth = start;
     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
-        float dist = sceneSDF(eye + depth * marchingDirection);
+        float dist = sceneSDF((eye + depth * marchingDirection) / (randSize + 1.0)) * (randSize + 1.0);
         if (dist < EPSILON) {
 		return depth;
         }

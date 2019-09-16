@@ -22,15 +22,18 @@ instr 1; Modal Synthesis Instrument
 idur 	init p3
 iamp    init ampdbfs(p4)
 
+kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 
 ; to simulate the shock between the excitator and the resonator
 krand	random	1,	10
-ashock  mpulse ampdbfs(-1), krand,	1
+ashock  mpulse ampdbfs(-3), krand,	1
 
 ; felt excitator from mode.csd
+;aexc1	mode	ashock,	80 * (kFreqScale + 1.0),	8
 aexc1	mode	ashock,	80,	8
 aexc1 = aexc1 * iamp
 
+;aexc2	mode	ashock,	188 * (kFreqScale * 1.0),	3
 aexc2	mode	ashock,	188,	3
 aexc2 = aexc2 * iamp
 
@@ -41,7 +44,7 @@ aexc = (aexc1 + aexc2)/2
 aexc limit aexc,0,3*iamp 
 
 ; Wine Glass with ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
-ares1	mode	aexc,	220,	420 ; A3 fundamental frequency
+ares1	mode	aexc,	220 * (kFreqScale + 1),	420 ; A3 fundamental frequency
 
 ares2	mode	aexc,	510.4,	480
 
@@ -63,8 +66,8 @@ aenv	adsr	iatt,	idec,	isus,	irel
 
 gaOut1 = aexc + ares 
 
-kRms	rms	gaOut1
-	chnset	kRms,	"vert0"
+;kRms	rms	gaOut1
+;	chnset	kRms,	"vert0"
 endin
 
 instr 6 ; Hrtf Instrument

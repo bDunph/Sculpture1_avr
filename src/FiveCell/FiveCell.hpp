@@ -4,7 +4,9 @@
 //#include "Skybox.hpp"
 
 #include <string>
+#include <vector>
 
+#include "rapidmix.h"
 #include "SoundObject.hpp"
 #include "CsoundSession.hpp"
 
@@ -23,6 +25,8 @@ public:
 	struct MachineLearning{
 		bool bRecord;
 		bool bRandomParams;
+		bool bTrainModel;
+		bool bRunModel;
 	};
 
 	bool setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GLuint groundPlaneProg, GLuint fiveCellProg, GLuint quadShaderProg);
@@ -127,6 +131,7 @@ private:
 	MYFLT* vert3Vol;
 	MYFLT* vert4Vol;
 	MYFLT* hrtfVals[15];
+	MYFLT* randomFrequencyVal;
 
 	//raymarching quad
 	unsigned int m_uiNumSceneVerts;
@@ -147,11 +152,21 @@ private:
 	GLint m_gliInverseMVEPLocation;
 	GLint m_gliMVEMatrixLocation;
 	GLint m_gliInverseMVELocation;
+	GLint m_gliRandomSizeLocation;
+	float sizeVal;
 
 	glm::mat4 raymarchQuadModelMatrix;
 	glm::mat4 modelViewEyeMat;
 	glm::mat4 inverseMVEMat;
 	glm::mat4 modelViewEyeProjectionMat;
 	glm::mat4 inverseMVEPMat;
+	
+	//machine learning
+	rapidmix::staticRegression staticRegression;
+	rapidmix::trainingData trainingData;
+
+	std::vector<double> inputData;
+	std::vector<double> outputData;	
+
 };
 #endif

@@ -1,13 +1,14 @@
 #include "FiveCell.hpp"
 
-#include <vector>
 #include <cstdio>
 #include <cstdarg>
+#include <random>
 #include <ctime>
 #include <assert.h>
 #include <math.h>
 #include <cmath>
 #include <iostream>
+
 #include "stb_image.h"
 
 #ifdef __APPLE__ 
@@ -57,6 +58,12 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 			std::cout << "GetChannelPtr could not get the distance input" << std::endl;
 			return false;
 		}
+
+		const char* randFreq = "randFreq";
+		if(session->GetChannelPtr(randomFrequencyVal, randFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+			std::cout << "GetChannelPtr could not get the randFreq value" << std::endl;
+			return false;
+		} 
 	}
 
 //********* output values from csound to avr *******************//
@@ -891,6 +898,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
 	m_gliMVEMatrixLocation = glGetUniformLocation(shaderProg, "MVEMat");
 	m_gliInverseMVELocation = glGetUniformLocation(shaderProg, "InvMVE");
+	m_gliRandomSizeLocation = glGetUniformLocation(shaderProg, "randSize");
 	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
 	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
 
@@ -954,6 +962,8 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 // Update Stuff Here
 //*********************************************************************************************************
 
+			
+	
 	//matrices for raymarch shaders
 	modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
 	inverseMVEMat = glm::inverse(modelViewEyeMat);
@@ -1031,27 +1041,29 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 
 		//******** calculate origin and direction of raycast
 		// setting the ray origin at centre of screen
-		glm::vec4 rayPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::vec2 ndcCoord = glm::vec2(rayPos.x / rayPos.w, rayPos.y / rayPos.w); 
-		// calculate points on near and far planes
-		glm::vec4 near = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, -1.0f, 1.0f);
-		glm::vec4 far = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, 1.0f, 1.0f);
-		glm::vec3 origin = glm::vec3(near.x / near.w, near.y / near.w, near.z / near.w);	
-		glm::vec3 endPoint = glm::vec3(far.x / far.w, far.y / far.w, far.z / far.w);
-		glm::vec3 direction = endPoint - origin;
-		direction = glm::normalize(direction);	 	
-		float distToCubeSurface = distanceToObject(origin, direction);
-		float distToCubeCentre = distToCubeSurface + 0.5f;
-		glm::vec3 cubePosition = origin + distToCubeCentre * direction;
-		std::cout << "Cube Pos " << cubePosition.x << " - " << cubePosition.y << " - " << cubePosition.z << std::endl; 
-		
+		//glm::vec4 rayPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		//glm::vec2 ndcCoord = glm::vec2(rayPos.x / rayPos.w, rayPos.y / rayPos.w); 
+		//// calculate points on near and far planes
+		//glm::vec4 near = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, -1.0f, 1.0f);
+		//glm::vec4 far = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, 1.0f, 1.0f);
+		//glm::vec3 origin = glm::vec3(near.x / near.w, near.y / near.w, near.z / near.w);	
+		//glm::vec3 endPoint = glm::vec3(far.x / far.w, far.y / far.w, far.z / far.w);
+		//glm::vec3 direction = endPoint - origin;
+		//direction = glm::normalize(direction);	 	
+		//float distToCubeSurface = distanceToObject(origin, direction);
+		//float distToCubeCentre = distToCubeSurface + 0.5f;
+		//glm::vec3 cubePosition = origin + distToCubeCentre * direction;
+		glm::vec4 mengerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::mat4 mengerModelMatrix = glm::mat4(1.0f);		
+
 		//position of menger cube
-		glm::vec4 posCameraSpace = eyeMat * viewMat * raymarchQuadModelMatrix * glm::vec4(cubePosition, 1.0f);		
+		glm::vec4 posCameraSpace = eyeMat * viewMat * mengerModelMatrix * mengerPosition;;		
 		//std::cout << i << " --- " << posCameraSpace.x << " : " << posCameraSpace.y << " : " << posCameraSpace.z << " : " << posCameraSpace.w << std::endl;
 
 		//glm::vec4 posWorldSpace = fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0);
 		//position of menger cube in world space
-		glm::vec4 posWorldSpace = raymarchQuadModelMatrix * glm::vec4(cubePosition, 1.0f);
+		glm::vec4 posWorldSpace = mengerModelMatrix * mengerPosition;
+		//std::cout << "Cube Position World Space " << posWorldSpace.x << " - " << posWorldSpace.y << " - " << posWorldSpace.z << std::endl; 
 		//calculate azimuth and elevation values for hrtf
 		
 		glm::vec4 viewerPosCameraSpace = eyeMat * viewMat * glm::vec4(camPos, 1.0f);
@@ -1115,8 +1127,70 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 		//std::cout << std::to_string(projectedVerts[i].x) << " : " << std::to_string(projectedVerts[i].y) << " : " << std::to_string(projectedVerts[i].z) << std::endl;
 	//}
 
-	
+//*********************************************************************************************
+// Machine Learning 
+//*********************************************************************************************
+	if(machineLearning.bRandomParams){
+		//random audio params
+		std::uniform_real_distribution<float> distribution(1, 10);
+		std::random_device rd;
+		std::default_random_engine generator (rd());
+		float val = distribution(generator);
+		*randomFrequencyVal = (MYFLT)val;
+		//std::cout << "Freq val - " << *randomFrequencyVal << std::endl;
+			
+		//random visual params
+		std::uniform_real_distribution<float> distribution2(1.0, 4.0);
+		std::random_device rd2;
+		std::default_random_engine gen2 (rd2());
+		sizeVal = distribution2(gen2);
+		//std::cout << "Random size val = " << sizeVal << std::endl;
+	}
+	machineLearning.bRandomParams = false;
 
+	if(machineLearning.bRecord){
+		inputData.push_back((double)viewerPosWorldSpace.x);	
+		inputData.push_back((double)viewerPosWorldSpace.y);	
+		inputData.push_back((double)viewerPosWorldSpace.z);	
+
+		outputData.push_back((double)*randomFrequencyVal);
+		outputData.push_back((double)sizeVal);
+
+		trainingData.recordSingleElement(inputData, outputData);	
+		std::cout << "Recording Data" << std::endl;
+		inputData.clear();
+		outputData.clear();
+	}
+	machineLearning.bRecord = false;
+
+	if(machineLearning.bTrainModel){
+		staticRegression.train(trainingData);
+		std::cout << "Model Trained" << std::endl;
+	}	
+	machineLearning.bTrainModel = false;
+
+	if(machineLearning.bRunModel){
+		std::vector<double> modelOut;
+		std::vector<double> modelIn;
+
+		modelIn.push_back((double)viewerPosWorldSpace.x);
+		modelIn.push_back((double)viewerPosWorldSpace.y);
+		modelIn.push_back((double)viewerPosWorldSpace.z);
+
+		modelOut = staticRegression.run(modelIn);
+
+		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
+		*randomFrequencyVal = (MYFLT)modelOut[0];
+		if(modelOut[1] > 4.0f) modelOut[0] = 4.0f;
+		if(modelOut[1] < 1.0f) modelOut[0] = 1.0f;
+		sizeVal = (float)modelOut[1];
+		std::cout << "Model Running" << std::endl;
+		modelIn.clear();
+		modelOut.clear();
+	}
+//*********************************************************************************************
+	
 	//float rotAngle = glfwGetTime() * 0.2f;
 	//glm::mat4 fiveCellRotationMatrix3D = glm::rotate(modelMatrix, rotAngle, glm::vec3(0, 1, 0)) ;
 	//fiveCellModelMatrix = scale5CellMatrix;
@@ -1294,6 +1368,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
 	glUniformMatrix4fv(m_gliMVEMatrixLocation, 1, GL_FALSE, &modelViewEyeMat[0][0]);
 	glUniformMatrix4fv(m_gliInverseMVELocation, 1, GL_FALSE, &inverseMVEMat[0][0]);
+	glUniform1f(m_gliRandomSizeLocation, sizeVal);
 	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
 	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
 
