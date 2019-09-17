@@ -7,6 +7,7 @@ const float EPSILON = 0.0001;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
+uniform float rmsModVal;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -80,7 +81,7 @@ float sceneSDF(vec3 samplePoint) {
     
     for(int i = 0; i <4; i++){
      	
-        vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
+        vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
         iterativeScalar *= 3.0;
         vec3 r = abs(1.0 - 4.0 * abs(a));
         float cubeCross = crossSDF(r) / iterativeScalar;    
@@ -180,6 +181,7 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
 // */
 vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
     const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
+    //const vec3 ambientLight = 0.5 * vec3(0.5, 0.125, 0.05);
     vec3 color = ambientLight * k_a;
     
     vec3 light1Pos = vec3(4.0,
@@ -224,7 +226,8 @@ void main()
     	vec3 p = rayOrigin + dist * rayDir;
 
     	// Use the surface normal as the ambient color of the material
-    	vec3 K_a = (estimateNormal(p) + vec3(1.0)) / 2.0;
+    	//vec3 K_a = (estimateNormal(p) + vec3(1.0)) / 2.0;
+    	vec3 K_a = vec3(0.5, 0.125, 0.05) / 2.0;
     	vec3 K_d = K_a;
     	vec3 K_s = vec3(1.0, 1.0, 1.0);
     	float shininess = 10.0;

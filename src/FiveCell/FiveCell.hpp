@@ -128,13 +128,14 @@ private:
 
 	//Csound
 	CsoundSession *session;
-	MYFLT* vert0Vol;
-	MYFLT* vert1Vol;
-	MYFLT* vert2Vol;
-	MYFLT* vert3Vol;
-	MYFLT* vert4Vol;
+	//MYFLT* vert0Vol;
+	//MYFLT* vert1Vol;
+	//MYFLT* vert2Vol;
+	//MYFLT* vert3Vol;
+	//MYFLT* vert4Vol;
 	MYFLT* hrtfVals[15];
 	MYFLT* randomFrequencyVal;
+	MYFLT* m_pRmsOut;
 
 	//raymarching quad
 	unsigned int m_uiNumSceneVerts;
@@ -156,7 +157,9 @@ private:
 	GLint m_gliMVEMatrixLocation;
 	GLint m_gliInverseMVELocation;
 	GLint m_gliRandomSizeLocation;
+	GLint m_gliRMSModulateValLocation;
 	float sizeVal;
+	float modulateVal;
 
 	glm::mat4 raymarchQuadModelMatrix;
 	glm::mat4 modelViewEyeMat;

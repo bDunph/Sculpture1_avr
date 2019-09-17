@@ -25,8 +25,9 @@ iamp    init ampdbfs(p4)
 kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 
 ; to simulate the shock between the excitator and the resonator
-krand	random	1,	10
-ashock  mpulse ampdbfs(-3), krand,	1
+krand	random	1,	10	
+ashock  mpulse ampdbfs(-1), krand,	2
+;ashock	lfo	iamp,	2
 
 ; felt excitator from mode.csd
 ;aexc1	mode	ashock,	80 * (kFreqScale + 1.0),	8
@@ -57,17 +58,17 @@ ares5	mode	aexc,	2063.6,	540
 ares = (ares1+ares2+ares3+ares4+ares5)/5
 
 ;envelope to shape output
-iatt = 1
-idec = 0.5
-isus = 0.01
-irel = 0.7
-
-aenv	adsr	iatt,	idec,	isus,	irel
+;iatt = 0.8
+;idec = 0.5
+;isus = 0.01
+;irel = 0.7
+;
+;aenv	adsr	iatt,	idec,	isus,	irel
 
 gaOut1 = aexc + ares 
 
-;kRms	rms	gaOut1
-;	chnset	kRms,	"vert0"
+kRms	rms	gaOut1
+	chnset	kRms,	"rmsOut"
 endin
 
 instr 6 ; Hrtf Instrument
@@ -174,9 +175,9 @@ endin
 <CsScore>
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-i1	0	180	-3		
+i1	2	180	-2		
 
-i6	0	180	
+i6	2	180	
 
 ;i7	0	240
 

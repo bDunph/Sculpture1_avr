@@ -67,6 +67,13 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	}
 
 //********* output values from csound to avr *******************//
+
+	const char* rmsOut = "rmsOut";
+	if(session->GetChannelPtr(m_pRmsOut, rmsOut, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+		std::cout << "Csound output value rmsOut not available" << std::endl;
+		return false;
+	}
+
 	//const char* vert0 = "vert0";
 	//if(session->GetChannelPtr(vert0Vol, vert0, CSOUND_OUTPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
 	//	std::cout << "Csound output value vert0Vol not available" << std::endl;
@@ -911,6 +918,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	m_gliMVEMatrixLocation = glGetUniformLocation(shaderProg, "MVEMat");
 	m_gliInverseMVELocation = glGetUniformLocation(shaderProg, "InvMVE");
 	m_gliRandomSizeLocation = glGetUniformLocation(shaderProg, "randSize");
+	m_gliRMSModulateValLocation = glGetUniformLocation(shaderProg, "rmsModVal");
 	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
 	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
 
@@ -974,7 +982,8 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 // Update Stuff Here
 //*********************************************************************************************************
 
-			
+	//rms value from Csound
+	modulateVal = *m_pRmsOut;			
 	
 	//matrices for raymarch shaders
 	modelViewEyeMat = eyeMat * viewMat * raymarchQuadModelMatrix;
@@ -1404,6 +1413,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glUniformMatrix4fv(m_gliMVEMatrixLocation, 1, GL_FALSE, &modelViewEyeMat[0][0]);
 	glUniformMatrix4fv(m_gliInverseMVELocation, 1, GL_FALSE, &inverseMVEMat[0][0]);
 	glUniform1f(m_gliRandomSizeLocation, sizeVal);
+	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
 	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
 	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
 
