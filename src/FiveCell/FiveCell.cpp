@@ -106,6 +106,7 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	m_bPrevRandomState = false;
 	m_bPrevTrainState = false;
 	m_bPrevHaltState = false;
+	m_bPrevLoadState = false;
 
 //********************************************************************************************
 
@@ -1209,11 +1210,20 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	m_bPrevHaltState = machineLearning.bHaltModel;
 
 	bool currentSaveState = m_bPrevSaveState;
-	if(machineLearning.bSaveModel != currentSaveState && machineLearning.bSaveModel == true){
-		std::cout << "Saving Model" << std::endl;
+	if(machineLearning.bSaveTrainingData!= currentSaveState && machineLearning.bSaveTrainingData == true){
+		trainingData.writeJSON("mySavedData.json");	
+		std::cout << "Saving Training Data" << std::endl;
 	}
-	m_bPrevSaveState = machineLearning.bSaveModel;
+	m_bPrevSaveState = machineLearning.bSaveTrainingData;
 	
+	bool currentLoadState = m_bPrevLoadState;
+	if(machineLearning.bLoadTrainingData != currentLoadState && machineLearning.bLoadTrainingData == true){
+		trainingData.readJSON("mySavedData.json");
+		staticRegression.train(trainingData);
+		std::cout << "Loading Data and Training Model" << std::endl;
+	}
+	m_bPrevLoadState = machineLearning.bLoadTrainingData;
+
 //*********************************************************************************************
 	
 	//float rotAngle = glfwGetTime() * 0.2f;

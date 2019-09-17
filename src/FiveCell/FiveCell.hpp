@@ -27,8 +27,9 @@ public:
 		bool bRandomParams;
 		bool bTrainModel;
 		bool bRunModel;
-		bool bSaveModel;
+		bool bSaveTrainingData;
 		bool bHaltModel;
+		bool bLoadTrainingData;
 	};
 
 	bool setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GLuint groundPlaneProg, GLuint fiveCellProg, GLuint quadShaderProg);
@@ -174,6 +175,7 @@ private:
 	bool m_bPrevRandomState;
 	bool m_bPrevTrainState;
 	bool m_bPrevHaltState;
+	bool m_bPrevLoadState;
 
 };
 #endif
