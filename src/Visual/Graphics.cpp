@@ -72,6 +72,8 @@ Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	machineLearning.bRecord = false;
 	machineLearning.bTrainModel = false;
 	machineLearning.bRunModel = false;
+	machineLearning.bSaveModel = false;
+	machineLearning.bHaltModel = false;
 }
 
 
@@ -686,8 +688,11 @@ void Graphics::DevProcessInput(GLFWwindow *window){
     	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
 	
+	//keep camera movement on the XZ plane
+	if(m_vec3DevCamPos.y < 0.0f || m_vec3DevCamPos.y > 0.0f) m_vec3DevCamPos.y = 0.0f;
+
 	//record data
-	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS){
+	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
 		machineLearning.bRecord = true;
 		//std::cout << "RECORD ON" << std::endl;
 	} 
@@ -696,20 +701,35 @@ void Graphics::DevProcessInput(GLFWwindow *window){
 	if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS){
 		machineLearning.bRandomParams = true;
 		//std::cout << "RANDOM" << std::endl;
+	} else if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE){
+		machineLearning.bRandomParams = false;
 	}
-	//machineLearning.bRandomParams = false;
 
 	//train model
 	if(glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS){
 		machineLearning.bTrainModel = true;
+	} else if(glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE){
+		machineLearning.bTrainModel = false;
 	}
 
 	//run model
 	if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
 		machineLearning.bRunModel = true;
+		machineLearning.bHaltModel = false;
 	}
 
-	if(m_vec3DevCamPos.y < 0.0f || m_vec3DevCamPos.y > 0.0f) m_vec3DevCamPos.y = 0.0f;
+	//halt model
+	if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
+		machineLearning.bHaltModel = true;
+		machineLearning.bRunModel = false;
+	}
+
+	//save model
+	if(glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS){
+		machineLearning.bSaveModel = true;
+	} else if(glfwGetKey(window, GLFW_KEY_K) == GLFW_RELEASE){
+		machineLearning.bSaveModel = false;
+	}
 }
 //-----------------------------------------------------------------------------
 // Main function that renders textures to hmd.

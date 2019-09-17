@@ -98,6 +98,17 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	//}
 //**********************************************************
 
+//*********************************************************************************************
+// Machine Learning
+//********************************************************************************************
+
+	m_bPrevSaveState = false;
+	m_bPrevRandomState = false;
+	m_bPrevTrainState = false;
+	m_bPrevHaltState = false;
+
+//********************************************************************************************
+
 	//glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_LESS);
 	glEnable(GL_BLEND);
@@ -1130,7 +1141,8 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 //*********************************************************************************************
 // Machine Learning 
 //*********************************************************************************************
-	if(machineLearning.bRandomParams){
+	bool currentRandomState = m_bPrevRandomState;
+	if(machineLearning.bRandomParams != currentRandomState && machineLearning.bRandomParams == true){
 		//random audio params
 		std::uniform_real_distribution<float> distribution(1, 10);
 		std::random_device rd;
@@ -1146,7 +1158,7 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 		sizeVal = distribution2(gen2);
 		//std::cout << "Random size val = " << sizeVal << std::endl;
 	}
-	machineLearning.bRandomParams = false;
+	m_bPrevRandomState = machineLearning.bRandomParams;
 
 	if(machineLearning.bRecord){
 		inputData.push_back((double)viewerPosWorldSpace.x);	
@@ -1163,13 +1175,15 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	}
 	machineLearning.bRecord = false;
 
-	if(machineLearning.bTrainModel){
+	bool currentTrainState = m_bPrevTrainState;
+	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
 		staticRegression.train(trainingData);
 		std::cout << "Model Trained" << std::endl;
 	}	
-	machineLearning.bTrainModel = false;
+	m_bPrevTrainState = machineLearning.bTrainModel;
 
-	if(machineLearning.bRunModel){
+	bool currentHaltState = m_bPrevHaltState;
+	if(machineLearning.bRunModel && !machineLearning.bHaltModel){
 		std::vector<double> modelOut;
 		std::vector<double> modelIn;
 
@@ -1188,7 +1202,18 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 		std::cout << "Model Running" << std::endl;
 		modelIn.clear();
 		modelOut.clear();
+	} else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState){
+		machineLearning.bRunModel = false;
+		std::cout << "Model Stopped" << std::endl;
 	}
+	m_bPrevHaltState = machineLearning.bHaltModel;
+
+	bool currentSaveState = m_bPrevSaveState;
+	if(machineLearning.bSaveModel != currentSaveState && machineLearning.bSaveModel == true){
+		std::cout << "Saving Model" << std::endl;
+	}
+	m_bPrevSaveState = machineLearning.bSaveModel;
+	
 //*********************************************************************************************
 	
 	//float rotAngle = glfwGetTime() * 0.2f;
