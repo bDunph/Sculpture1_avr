@@ -150,12 +150,12 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 //**************************************************************************************************
 	//for(int i = 0; i < _countof(soundObjects); i++){
 
-	for(int i = 0; i < 5; i++){
-		if(!soundObjects[i].setup(soundObjProg)){
-			std::cout << "ERROR: SoundObject " << std::to_string(i) << " init failed" << std::endl;
-			return false;
-		}
-	}
+	//for(int i = 0; i < 5; i++){
+	//	if(!soundObjects[i].setup(soundObjProg)){
+	//		std::cout << "ERROR: SoundObject " << std::to_string(i) << " init failed" << std::endl;
+	//		return false;
+	//	}
+	//}
 	
 //*************************************************************************************************
 			
@@ -614,27 +614,27 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 		1.0f/sqrt(10.0f), -sqrt(3.0f/2.0f), 0.0f, 0.0f,
 		-2.0f * sqrt(2.0f/5.0f), 0.0f, 0.0f, 0.0f
 	};*/
-	float vertices5Cell [20] = {
-		0.3162f, 0.4082f, 0.5774f, 1.0f,
-		0.3162f, 0.4082f, 0.5774f, -1.0f,
-		0.3162f, 0.4082f, -1.1547, 0.0f,
-		0.3162f, -1.2247f, 0.0f, 0.0f,
-		-1.2649f, 0.0f, 0.0f, 0.0f
-	};
+	//float vertices5Cell [20] = {
+	//	0.3162f, 0.4082f, 0.5774f, 1.0f,
+	//	0.3162f, 0.4082f, 0.5774f, -1.0f,
+	//	0.3162f, 0.4082f, -1.1547, 0.0f,
+	//	0.3162f, -1.2247f, 0.0f, 0.0f,
+	//	-1.2649f, 0.0f, 0.0f, 0.0f
+	//};
 
 	/* indices specifying 10 faces */
-	unsigned int indices [30] = {
-		4, 2, 3,
-		3, 0, 2,
-		2, 0, 4,
-		4, 0, 3,
-		3, 1, 0,
-		1, 4, 0,
-		0, 1, 2,
-		2, 3, 1,
-		1, 3, 4,
-		4, 2, 1	
-	};
+	//unsigned int indices [30] = {
+	//	4, 2, 3,
+	//	3, 0, 2,
+	//	2, 0, 4,
+	//	4, 0, 3,
+	//	3, 1, 0,
+	//	1, 4, 0,
+	//	0, 1, 2,
+	//	2, 3, 1,
+	//	1, 3, 4,
+	//	4, 2, 1	
+	//};
 
 	//alt indices
 	//unsigned int indices [30] = {
@@ -650,201 +650,201 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	//	0, 1, 4
 	//};
 	
-	unsigned int lineIndices [20] = {
-		4, 2,
-		2, 3,
-		3, 4,
-		4, 0,
-		0, 2, 
-		0, 3,
-		3, 1,
-		1, 2,
-		4, 1,
-		1, 0
-	};
+	//unsigned int lineIndices [20] = {
+	//	4, 2,
+	//	2, 3,
+	//	3, 4,
+	//	4, 0,
+	//	0, 2, 
+	//	0, 3,
+	//	3, 1,
+	//	1, 2,
+	//	4, 1,
+	//	1, 0
+	//};
 
-	//array of verts
-	glm::vec4 vertArray [5] = {
-		glm::vec4(vertices5Cell[0], vertices5Cell[1], vertices5Cell[2], vertices5Cell[3]),
-		glm::vec4(vertices5Cell[4], vertices5Cell[5], vertices5Cell[6], vertices5Cell[7]),
-		glm::vec4(vertices5Cell[8], vertices5Cell[9], vertices5Cell[10], vertices5Cell[11]),
-		glm::vec4(vertices5Cell[12], vertices5Cell[13], vertices5Cell[14], vertices5Cell[15]),
-		glm::vec4(vertices5Cell[16], vertices5Cell[17], vertices5Cell[18], vertices5Cell[19])
-	};
+	////array of verts
+	//glm::vec4 vertArray [5] = {
+	//	glm::vec4(vertices5Cell[0], vertices5Cell[1], vertices5Cell[2], vertices5Cell[3]),
+	//	glm::vec4(vertices5Cell[4], vertices5Cell[5], vertices5Cell[6], vertices5Cell[7]),
+	//	glm::vec4(vertices5Cell[8], vertices5Cell[9], vertices5Cell[10], vertices5Cell[11]),
+	//	glm::vec4(vertices5Cell[12], vertices5Cell[13], vertices5Cell[14], vertices5Cell[15]),
+	//	glm::vec4(vertices5Cell[16], vertices5Cell[17], vertices5Cell[18], vertices5Cell[19])
+	//};
 
-	for(int i = 0; i < _countof(vertArray); i++){
-		vertArray5Cell[i] = vertArray [i];
-	}	
+	//for(int i = 0; i < _countof(vertArray); i++){
+	//	vertArray5Cell[i] = vertArray [i];
+	//}	
 
-	//array of faces
-	glm::vec3 faceArray [10] = {
-		glm::vec3(indices[0], indices[1], indices[2]),
-		glm::vec3(indices[3], indices[4], indices[5]),
-		glm::vec3(indices[6], indices[7], indices[8]),
-		glm::vec3(indices[9], indices[10], indices[11]),
-		glm::vec3(indices[12], indices[13], indices[14]),
-		glm::vec3(indices[15], indices[16], indices[17]),
-		glm::vec3(indices[18], indices[19], indices[20]),
-		glm::vec3(indices[21], indices[22], indices[23]),
-		glm::vec3(indices[24], indices[25], indices[26]),
-		glm::vec3(indices[27], indices[28], indices[29]),
-	};
+	////array of faces
+	//glm::vec3 faceArray [10] = {
+	//	glm::vec3(indices[0], indices[1], indices[2]),
+	//	glm::vec3(indices[3], indices[4], indices[5]),
+	//	glm::vec3(indices[6], indices[7], indices[8]),
+	//	glm::vec3(indices[9], indices[10], indices[11]),
+	//	glm::vec3(indices[12], indices[13], indices[14]),
+	//	glm::vec3(indices[15], indices[16], indices[17]),
+	//	glm::vec3(indices[18], indices[19], indices[20]),
+	//	glm::vec3(indices[21], indices[22], indices[23]),
+	//	glm::vec3(indices[24], indices[25], indices[26]),
+	//	glm::vec3(indices[27], indices[28], indices[29]),
+	//};
 
-	glm::vec4 faceNormalArray [10];
-	
-	//calculate vertex normals in 4D to send to shaders for lighting
-	for(int i = 0; i < _countof(faceArray); i++){
-		//calculate three linearly independent vectors for each face
-		unsigned int indexA = faceArray[i].x;
-		unsigned int indexB = faceArray[i].y;
-		unsigned int indexC = faceArray[i].z;
+	//glm::vec4 faceNormalArray [10];
+	//
+	////calculate vertex normals in 4D to send to shaders for lighting
+	//for(int i = 0; i < _countof(faceArray); i++){
+	//	//calculate three linearly independent vectors for each face
+	//	unsigned int indexA = faceArray[i].x;
+	//	unsigned int indexB = faceArray[i].y;
+	//	unsigned int indexC = faceArray[i].z;
 
-		glm::vec4 vertA = vertArray[indexA];
-		glm::vec4 vertB = vertArray[indexB];
-		glm::vec4 vertC = vertArray[indexC];
+	//	glm::vec4 vertA = vertArray[indexA];
+	//	glm::vec4 vertB = vertArray[indexB];
+	//	glm::vec4 vertC = vertArray[indexC];
 
-		glm::vec4 vectorA = glm::vec4(vertB.x - vertA.x, vertB.y - vertA.y, vertB.z - vertA.z, vertB.w - vertA.w);
-		glm::vec4 vectorB = glm::vec4(vertC.x - vertB.x, vertC.y - vertB.y, vertC.z - vertB.z, vertC.w - vertB.w);
-		glm::vec4 vectorC = glm::vec4(vertA.x - vertC.x, vertA.y - vertC.y, vertA.z - vertC.z, vertA.w - vertC.w);
+	//	glm::vec4 vectorA = glm::vec4(vertB.x - vertA.x, vertB.y - vertA.y, vertB.z - vertA.z, vertB.w - vertA.w);
+	//	glm::vec4 vectorB = glm::vec4(vertC.x - vertB.x, vertC.y - vertB.y, vertC.z - vertB.z, vertC.w - vertB.w);
+	//	glm::vec4 vectorC = glm::vec4(vertA.x - vertC.x, vertA.y - vertC.y, vertA.z - vertC.z, vertA.w - vertC.w);
 
-		//calculate orthonormal basis for vectorA, B and C using Gram-Schmidt. We can then calculte
-		//the 4D normal
-		glm::vec4 u1 = glm::normalize(vectorA);
-		
-		glm::vec4 y2 = vectorB - ((glm::dot(vectorB, u1)) * u1);
-		glm::vec4 u2 = glm::normalize(y2);
+	//	//calculate orthonormal basis for vectorA, B and C using Gram-Schmidt. We can then calculte
+	//	//the 4D normal
+	//	glm::vec4 u1 = glm::normalize(vectorA);
+	//	
+	//	glm::vec4 y2 = vectorB - ((glm::dot(vectorB, u1)) * u1);
+	//	glm::vec4 u2 = glm::normalize(y2);
 
-		glm::vec4 y3 = vectorC - ((glm::dot(vectorC, u2)) * u2);
-		glm::vec4 u3 = glm::normalize(y3);
-		
-		//calculate the  normal for each face
-	 	//using matrices and  Laplace expansion we can find the normal 
-		//vector in 4D given three input vectors	
-		//this procedure is following the article at https://ef.gy/linear-algebra:normal-vectors-in-higher-dimensional-spaces 
-		/* a x b x c = 	| a0 b0 c0 right|
-				| a1 b1 c1 up	|
-				| a2 b2 c2 back	|	
-				| a3 b3 c3 charm|*/
-		glm::vec4 right = glm::vec4(1.0, 0.0, 0.0, 0.0);	
-		glm::vec4 up = glm::vec4(0.0, 1.0, 0.0, 0.0);	
-		glm::vec4 back = glm::vec4(0.0, 0.0, 1.0, 0.0);	
-		glm::vec4 charm = glm::vec4(0.0, 0.0, 0.0, 1.0);	
+	//	glm::vec4 y3 = vectorC - ((glm::dot(vectorC, u2)) * u2);
+	//	glm::vec4 u3 = glm::normalize(y3);
+	//	
+	//	//calculate the  normal for each face
+	// 	//using matrices and  Laplace expansion we can find the normal 
+	//	//vector in 4D given three input vectors	
+	//	//this procedure is following the article at https://ef.gy/linear-algebra:normal-vectors-in-higher-dimensional-spaces 
+	//	/* a x b x c = 	| a0 b0 c0 right|
+	//			| a1 b1 c1 up	|
+	//			| a2 b2 c2 back	|	
+	//			| a3 b3 c3 charm|*/
+	//	glm::vec4 right = glm::vec4(1.0, 0.0, 0.0, 0.0);	
+	//	glm::vec4 up = glm::vec4(0.0, 1.0, 0.0, 0.0);	
+	//	glm::vec4 back = glm::vec4(0.0, 0.0, 1.0, 0.0);	
+	//	glm::vec4 charm = glm::vec4(0.0, 0.0, 0.0, 1.0);	
 
-		glm::mat3 matA = glm::mat3(	u1.y, u2.y, u3.y,
-						u1.z, u2.z, u3.z,
-						u1.w, u2.w, u3.w);
+	//	glm::mat3 matA = glm::mat3(	u1.y, u2.y, u3.y,
+	//					u1.z, u2.z, u3.z,
+	//					u1.w, u2.w, u3.w);
 
-		glm::mat3 matB = glm::mat3(	u1.x, u2.x, u3.x,
-						u1.z, u2.z, u3.z,
-						u1.w, u2.w, u3.w);
+	//	glm::mat3 matB = glm::mat3(	u1.x, u2.x, u3.x,
+	//					u1.z, u2.z, u3.z,
+	//					u1.w, u2.w, u3.w);
 
-		glm::mat3 matC = glm::mat3(	u1.x, u2.x, u3.x,
-						u1.y, u2.y, u3.y,
-						u1.w, u2.w, u3.w);
-	
-		glm::mat3 matD = glm::mat3(	u1.x, u2.x, u3.x,
-						u1.y, u2.y, u3.y,
-						u1.z, u2.z, u3.z);	
+	//	glm::mat3 matC = glm::mat3(	u1.x, u2.x, u3.x,
+	//					u1.y, u2.y, u3.y,
+	//					u1.w, u2.w, u3.w);
+	//
+	//	glm::mat3 matD = glm::mat3(	u1.x, u2.x, u3.x,
+	//					u1.y, u2.y, u3.y,
+	//					u1.z, u2.z, u3.z);	
 
-		float determinantA = glm::determinant(matA);	
-		float determinantB = glm::determinant(matB);	
-		float determinantC = glm::determinant(matC);	
-		float determinantD = glm::determinant(matD);	
+	//	float determinantA = glm::determinant(matA);	
+	//	float determinantB = glm::determinant(matB);	
+	//	float determinantC = glm::determinant(matC);	
+	//	float determinantD = glm::determinant(matD);	
 
-		glm::vec4 termA = (determinantA * right) * -1.0f;
-		glm::vec4 termB = determinantB * up;
-		glm::vec4 termC = (determinantC * back) * -1.0f;
-		glm::vec4 termD = determinantD * charm;
+	//	glm::vec4 termA = (determinantA * right) * -1.0f;
+	//	glm::vec4 termB = determinantB * up;
+	//	glm::vec4 termC = (determinantC * back) * -1.0f;
+	//	glm::vec4 termD = determinantD * charm;
 
-		glm::vec4 faceNormal = termA + termB + termC + termD;
-		faceNormalArray[i] += faceNormal;
-	}
-	
-	
+	//	glm::vec4 faceNormal = termA + termB + termC + termD;
+	//	faceNormalArray[i] += faceNormal;
+	//}
+	//
+	//
 
-	float vertexNormalArray [20];
+	//float vertexNormalArray [20];
 
-	//calculate the normal for each vertex by taking the average of the normals of each adjacent face
-	for(int i = 0; i < _countof(vertArray); i++){
-		glm::vec4 cumulativeNormals = glm::vec4(0.0);
-		for(int j = 0; j < _countof(faceArray); j++){
-				
-			//does this face [j] contain vert [i]?
-			unsigned int vertA = faceArray[j].x;				 
-			unsigned int vertB = faceArray[j].y;
-			unsigned int vertC = faceArray[j].z;
-			if(vertA == i || vertB == i || vertC == i){
-				cumulativeNormals += faceNormalArray[j];
-			}	
-		}
-		glm::vec4 vertexNormal = glm::normalize(cumulativeNormals);
-		vertexNormalArray[i*4] += vertexNormal.x;
-		vertexNormalArray[i*4+1] += vertexNormal.y;
-		vertexNormalArray[i*4+2] += vertexNormal.z;
-		vertexNormalArray[i*4+3] += vertexNormal.w;
-	}
-	
-		
+	////calculate the normal for each vertex by taking the average of the normals of each adjacent face
+	//for(int i = 0; i < _countof(vertArray); i++){
+	//	glm::vec4 cumulativeNormals = glm::vec4(0.0);
+	//	for(int j = 0; j < _countof(faceArray); j++){
+	//			
+	//		//does this face [j] contain vert [i]?
+	//		unsigned int vertA = faceArray[j].x;				 
+	//		unsigned int vertB = faceArray[j].y;
+	//		unsigned int vertC = faceArray[j].z;
+	//		if(vertA == i || vertB == i || vertC == i){
+	//			cumulativeNormals += faceNormalArray[j];
+	//		}	
+	//	}
+	//	glm::vec4 vertexNormal = glm::normalize(cumulativeNormals);
+	//	vertexNormalArray[i*4] += vertexNormal.x;
+	//	vertexNormalArray[i*4+1] += vertexNormal.y;
+	//	vertexNormalArray[i*4+2] += vertexNormal.z;
+	//	vertexNormalArray[i*4+3] += vertexNormal.w;
+	//}
+	//
+	//	
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	//glGenVertexArrays(1, &vao);
+	//glBindVertexArray(vao);
 
-	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertices5Cell, GL_STATIC_DRAW);
+	//GLuint vbo;
+	//glGenBuffers(1, &vbo);
+	//glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	//glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertices5Cell, GL_STATIC_DRAW);
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-	GLuint vertNormals;
-	glGenBuffers(1, &vertNormals);
-	glBindBuffer(GL_ARRAY_BUFFER, vertNormals);
-	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertexNormalArray, GL_STATIC_DRAW);
+	//glEnableVertexAttribArray(0);
+	//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//
+	//GLuint vertNormals;
+	//glGenBuffers(1, &vertNormals);
+	//glBindBuffer(GL_ARRAY_BUFFER, vertNormals);
+	//glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), vertexNormalArray, GL_STATIC_DRAW);
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-	glGenBuffers(1, &index);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 30 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	//glGenBuffers(1, &lineIndex);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIndex);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, 20 * sizeof(unsigned int), lineIndices, GL_STATIC_DRAW);
+	//glEnableVertexAttribArray(1);
+	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//
+	//glGenBuffers(1, &index);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, 30 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	//uniforms for 4D shape
-	projMatLoc = glGetUniformLocation(fiveCellProg, "projMat");
-	viewMatLoc = glGetUniformLocation(fiveCellProg, "viewMat");
-	fiveCellModelMatLoc = glGetUniformLocation(fiveCellProg, "fiveCellModelMat");
-	rotationZWLoc = glGetUniformLocation(fiveCellProg, "rotZW");
-	rotationXWLoc = glGetUniformLocation(fiveCellProg, "rotXW");
+	////glGenBuffers(1, &lineIndex);
+	////glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lineIndex);
+	////glBufferData(GL_ELEMENT_ARRAY_BUFFER, 20 * sizeof(unsigned int), lineIndices, GL_STATIC_DRAW);
+	////glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	lightPosLoc = glGetUniformLocation(fiveCellProg, "lightPos");
-	light2PosLoc = glGetUniformLocation(fiveCellProg, "light2Pos");
+	////uniforms for 4D shape
+	//projMatLoc = glGetUniformLocation(fiveCellProg, "projMat");
+	//viewMatLoc = glGetUniformLocation(fiveCellProg, "viewMat");
+	//fiveCellModelMatLoc = glGetUniformLocation(fiveCellProg, "fiveCellModelMat");
+	//rotationZWLoc = glGetUniformLocation(fiveCellProg, "rotZW");
+	//rotationXWLoc = glGetUniformLocation(fiveCellProg, "rotXW");
 
-	cameraPosLoc = glGetUniformLocation(fiveCellProg, "camPos");
+	//lightPosLoc = glGetUniformLocation(fiveCellProg, "lightPos");
+	//light2PosLoc = glGetUniformLocation(fiveCellProg, "light2Pos");
 
-	alphaLoc = glGetUniformLocation(fiveCellProg, "alpha");
-	
-	//only use during development as computationally expensive
-	//bool validProgram = is_valid(fiveCellProg);
-	//if(!validProgram){
-	//	fprintf(stderr, "ERROR: fiveCellShaderProg not valid\n");
-	//	return 1;
-	//}
+	//cameraPosLoc = glGetUniformLocation(fiveCellProg, "camPos");
 
-	glBindVertexArray(0);
+	//alphaLoc = glGetUniformLocation(fiveCellProg, "alpha");
+	//
+	////only use during development as computationally expensive
+	////bool validProgram = is_valid(fiveCellProg);
+	////if(!validProgram){
+	////	fprintf(stderr, "ERROR: fiveCellShaderProg not valid\n");
+	////	return 1;
+	////}
 
-	fiveCellModelMatrix = glm::mat4(1.0);
+	//glBindVertexArray(0);
 
-	glm::vec3 scale5Cell = glm::vec3(5.0f, 5.0f, 5.0f);
-	scale5CellMatrix = glm::scale(fiveCellModelMatrix, scale5Cell);
-	fiveCellModelMatrix = scale5CellMatrix;
+	//fiveCellModelMatrix = glm::mat4(1.0);
+
+	//glm::vec3 scale5Cell = glm::vec3(5.0f, 5.0f, 5.0f);
+	//scale5CellMatrix = glm::scale(fiveCellModelMatrix, scale5Cell);
+	//fiveCellModelMatrix = scale5CellMatrix;
 	
 //***********************************************************************************************************
 
@@ -930,51 +930,51 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //***********************************************************************************************
 // Cube signed distance function to calculate world position for audio location 
 //***********************************************************************************************
-float FiveCell::cubeSDF(glm::vec3 samplePoint){
-	
-	glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
-	
-	glm::vec3 d = glm::abs(samplePoint) - glm::vec3(size.x / 2.0, size.y / 2.0, size.z / 2.0);
-    
-    	// Assuming samplePoint is inside the cube, how far is it from the surface?
-    	// Result will be negative or zero. Because the point is assumed inside the cube, 
-	// the components of d will be negative values. This means taking the max between
-	// them is checking which side of the cube is closest as the bigger value will
-	// be closer to 0. The the min value is taken between the resulting distance and 0.
-    	float insideDistance = fmin(fmax(d.x, fmax(d.y, d.z)), 0.0);
-    	
-    	// Assuming p is outside the cube, how far is it from the surface?
-    	// Result will be positive or zero.
-    	float outsideDistance = glm::length(glm::max(d, glm::vec3(0.0)));
-    	
-    	return insideDistance + outsideDistance;
-}
+//float FiveCell::cubeSDF(glm::vec3 samplePoint){
+//	
+//	glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
+//	
+//	glm::vec3 d = glm::abs(samplePoint) - glm::vec3(size.x / 2.0, size.y / 2.0, size.z / 2.0);
+//    
+//    	// Assuming samplePoint is inside the cube, how far is it from the surface?
+//    	// Result will be negative or zero. Because the point is assumed inside the cube, 
+//	// the components of d will be negative values. This means taking the max between
+//	// them is checking which side of the cube is closest as the bigger value will
+//	// be closer to 0. The the min value is taken between the resulting distance and 0.
+//    	float insideDistance = fmin(fmax(d.x, fmax(d.y, d.z)), 0.0);
+//    	
+//    	// Assuming p is outside the cube, how far is it from the surface?
+//    	// Result will be positive or zero.
+//    	float outsideDistance = glm::length(glm::max(d, glm::vec3(0.0)));
+//    	
+//    	return insideDistance + outsideDistance;
+//}
 
 //***********************************************************************************************
 // Calculate distance to raymarched cube 
 //***********************************************************************************************
 
-float FiveCell::distanceToObject(glm::vec3 origin, glm::vec3 direction){
-
-	float minDist = 0.0f;
-	float maxDist = 100.0f;
-	unsigned int maxMarchingSteps = 255;
-	float epsilon = 0.0001f;
-
-	float depth = minDist;
-
-    for (int i = 0; i < maxMarchingSteps; i++) {
-        float dist = cubeSDF(origin + depth * direction);
-        if (dist < epsilon) {
-		return depth;
-        }
-        depth += dist;
-        if (depth >= maxDist) {
-            return maxDist;
-        }
-    }
-    return maxDist;
-}
+//float FiveCell::distanceToObject(glm::vec3 origin, glm::vec3 direction){
+//
+//	float minDist = 0.0f;
+//	float maxDist = 100.0f;
+//	unsigned int maxMarchingSteps = 255;
+//	float epsilon = 0.0001f;
+//
+//	float depth = minDist;
+//
+//    for (int i = 0; i < maxMarchingSteps; i++) {
+//        float dist = cubeSDF(origin + depth * direction);
+//        if (dist < epsilon) {
+//		return depth;
+//        }
+//        depth += dist;
+//        if (depth >= maxDist) {
+//            return maxDist;
+//        }
+//    }
+//    return maxDist;
+//}
 
 void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning){
 
@@ -995,8 +995,8 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	//	std::cout << std::to_string(i) << " --- " << std::to_string(vertArray5Cell[i].x) << " : " << std::to_string(vertArray5Cell[i].y) << " : " << std::to_string(vertArray5Cell[i].z) << " : " << std::to_string(vertArray5Cell[i].w) << std::endl;
 	//}
 		
-	currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
+	//currentFrame = glfwGetTime();
+	//deltaTime = currentFrame - lastFrame;
 	
 	//_update_fps_counter(window);
 		
@@ -1170,68 +1170,94 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
-	if(machineLearning.bRecord){
-		inputData.push_back((double)viewerPosWorldSpace.x);	
-		inputData.push_back((double)viewerPosWorldSpace.y);	
-		inputData.push_back((double)viewerPosWorldSpace.z);	
+	//if(machineLearning.bRecord){
+	//	inputData.push_back((double)viewerPosWorldSpace.x);	
+	//	inputData.push_back((double)viewerPosWorldSpace.y);	
+	//	inputData.push_back((double)viewerPosWorldSpace.z);	
 
-		outputData.push_back((double)*randomFrequencyVal);
-		outputData.push_back((double)sizeVal);
+	//	outputData.push_back((double)*randomFrequencyVal);
+	//	outputData.push_back((double)sizeVal);
 
-		trainingData.recordSingleElement(inputData, outputData);	
-		std::cout << "Recording Data" << std::endl;
-		inputData.clear();
-		outputData.clear();
-	}
-	machineLearning.bRecord = false;
+//#ifdef __APPLE__
+	//	trainingData.recordSingleElement(inputData, outputData);	
+//#elif _WIN32
+	//	trainingData.input = inputData;
+	//	trainingData.output = outputData;
+	//	trainingSet.push_back(trainingData);
+//#endif
 
-	bool currentTrainState = m_bPrevTrainState;
-	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
-		staticRegression.train(trainingData);
-		std::cout << "Model Trained" << std::endl;
-	}	
-	m_bPrevTrainState = machineLearning.bTrainModel;
+	//	std::cout << "Recording Data" << std::endl;
+	//	inputData.clear();
+	//	outputData.clear();
+	//}
+	//machineLearning.bRecord = false;
 
-	bool currentHaltState = m_bPrevHaltState;
-	if(machineLearning.bRunModel && !machineLearning.bHaltModel){
-		std::vector<double> modelOut;
-		std::vector<double> modelIn;
+	//bool currentTrainState = m_bPrevTrainState;
+	//if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
 
-		modelIn.push_back((double)viewerPosWorldSpace.x);
-		modelIn.push_back((double)viewerPosWorldSpace.y);
-		modelIn.push_back((double)viewerPosWorldSpace.z);
+//#ifdef __APPLE__
+	//	staticRegression.train(trainingData);
+//#elif _WIN32
+	//	staticRegression.train(trainingSet);
+//#endif
 
-		modelOut = staticRegression.run(modelIn);
+	//	std::cout << "Model Trained" << std::endl;
+	//}	
+	//m_bPrevTrainState = machineLearning.bTrainModel;
 
-		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
-		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
-		*randomFrequencyVal = (MYFLT)modelOut[0];
-		if(modelOut[1] > 4.0f) modelOut[0] = 4.0f;
-		if(modelOut[1] < 1.0f) modelOut[0] = 1.0f;
-		sizeVal = (float)modelOut[1];
-		std::cout << "Model Running" << std::endl;
-		modelIn.clear();
-		modelOut.clear();
-	} else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState){
-		machineLearning.bRunModel = false;
-		std::cout << "Model Stopped" << std::endl;
-	}
-	m_bPrevHaltState = machineLearning.bHaltModel;
+	//bool currentHaltState = m_bPrevHaltState;
+	//if(machineLearning.bRunModel && !machineLearning.bHaltModel){
+	//	std::vector<double> modelOut;
+	//	std::vector<double> modelIn;
 
-	bool currentSaveState = m_bPrevSaveState;
-	if(machineLearning.bSaveTrainingData!= currentSaveState && machineLearning.bSaveTrainingData == true){
-		trainingData.writeJSON("mySavedData.json");	
-		std::cout << "Saving Training Data" << std::endl;
-	}
-	m_bPrevSaveState = machineLearning.bSaveTrainingData;
-	
-	bool currentLoadState = m_bPrevLoadState;
-	if(machineLearning.bLoadTrainingData != currentLoadState && machineLearning.bLoadTrainingData == true){
-		trainingData.readJSON("mySavedData.json");
-		staticRegression.train(trainingData);
-		std::cout << "Loading Data and Training Model" << std::endl;
-	}
-	m_bPrevLoadState = machineLearning.bLoadTrainingData;
+	//	modelIn.push_back((double)viewerPosWorldSpace.x);
+	//	modelIn.push_back((double)viewerPosWorldSpace.y);
+	//	modelIn.push_back((double)viewerPosWorldSpace.z);
+
+	//	modelOut = staticRegression.run(modelIn);
+
+	//	if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+	//	if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
+	//	*randomFrequencyVal = (MYFLT)modelOut[0];
+	//	if(modelOut[1] > 4.0f) modelOut[0] = 4.0f;
+	//	if(modelOut[1] < 1.0f) modelOut[0] = 1.0f;
+	//	sizeVal = (float)modelOut[1];
+	//	std::cout << "Model Running" << std::endl;
+	//	modelIn.clear();
+	//	modelOut.clear();
+	//} else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState){
+	//	machineLearning.bRunModel = false;
+	//	std::cout << "Model Stopped" << std::endl;
+	//}
+	//m_bPrevHaltState = machineLearning.bHaltModel;
+
+	//std::string mySavedModel = "mySavedModel.json";
+	//bool currentSaveState = m_bPrevSaveState;
+	//if(machineLearning.bSaveTrainingData!= currentSaveState && machineLearning.bSaveTrainingData == true){
+
+//#ifdef __APPLE__
+	//	trainingData.writeJSON(mySavedModel);	
+//#elif _WIN32
+	//	staticRegression.writeJSON(mySavedModel);
+//#endif
+
+	//	std::cout << "Saving Training Data" << std::endl;
+	//}
+	//m_bPrevSaveState = machineLearning.bSaveTrainingData;
+	//
+	//bool currentLoadState = m_bPrevLoadState;
+	//if(machineLearning.bLoadTrainingData != currentLoadState && machineLearning.bLoadTrainingData == true){
+	//	
+//#ifdef __APPLE__
+	//	trainingData.readJSON(mySavedModel);
+	//	staticRegression.train(trainingData);
+//#elif _WIN32
+	//	staticRegression.readJSON(mySavedModel);	
+//#endif
+
+	//	std::cout << "Loading Data and Training Model" << std::endl;
+	//}
+	//m_bPrevLoadState = machineLearning.bLoadTrainingData;
 
 //*********************************************************************************************
 	
@@ -1397,8 +1423,6 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//}	
 		
 	//draw menger sponge
-
-	
 	float mengerAspect = raymarchData.aspect;
 	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
 
@@ -1439,7 +1463,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//glfwSetWindowSizeCallback(window, glfw_window_size_callback);
 	//glfwSetErrorCallback(glfw_error_callback);
 		
-	lastFrame = currentFrame;
+	//lastFrame = currentFrame;
 }
 
 void FiveCell::exit(){

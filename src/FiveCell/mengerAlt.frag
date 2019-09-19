@@ -73,7 +73,7 @@ float crossSDF(vec3 p){
 }
 
 float sceneSDF(vec3 samplePoint) {    
-    float cube = boxSDF((samplePoint), vec3(1.0, 1.0, 1.0));
+    float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
     float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
     cube = differenceSDF(cube, cubeCross);
 

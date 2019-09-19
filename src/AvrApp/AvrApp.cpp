@@ -120,7 +120,7 @@ void AvrApp::RunMainLoop(){
 			bQuit = m_pVR->HandleInput();
 		}
 		bQuit = m_pGraphics->BRenderFrame(m_pVR);
-
+		
 		bQuit = m_pGraphics->TempEsc();
 	}
 }

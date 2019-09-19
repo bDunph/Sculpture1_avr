@@ -6,7 +6,12 @@
 #include <string>
 #include <vector>
 
+#ifdef __APPLE__
 #include "rapidmix.h"
+#elif _WIN32
+#include "RapidLib/regression.h"
+#endif
+
 #include "SoundObject.hpp"
 #include "CsoundSession.hpp"
 
@@ -34,8 +39,8 @@ public:
 
 	bool setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GLuint groundPlaneProg, GLuint fiveCellProg, GLuint quadShaderProg);
 	bool BSetupRaymarchQuad(GLuint shaderProg);
-	float cubeSDF(glm::vec3 samplePoint);
-	float distanceToObject(glm::vec3 origin, glm::vec3 direction);
+	//float cubeSDF(glm::vec3 samplePoint);
+	//float distanceToObject(glm::vec3 origin, glm::vec3 direction);
 	void update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning);
 	void draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
 	void exit();
@@ -168,8 +173,14 @@ private:
 	glm::mat4 inverseMVEPMat;
 	
 	//machine learning
+#ifdef __APPLE__
 	rapidmix::staticRegression staticRegression;
 	rapidmix::trainingData trainingData;
+#elif _WIN32
+	regression staticRegression;
+	trainingExample trainingData;
+	std::vector<trainingExample> trainingSet;
+#endif
 
 	std::vector<double> inputData;
 	std::vector<double> outputData;	

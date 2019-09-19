@@ -165,26 +165,26 @@ bool Graphics::BInitGL(bool fullscreen){
 		std::cout << "skyboxShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
-	soundObjShaderProg = BCreateSceneShaders("soundObj");
-	if(soundObjShaderProg == NULL){
-		std::cout << "soundObjShaderProg returned NULL: Graphics::BInitGL" << std::endl;
-		return false;
-	}
+	//soundObjShaderProg = BCreateSceneShaders("soundObj");
+	//if(soundObjShaderProg == NULL){
+	//	std::cout << "soundObjShaderProg returned NULL: Graphics::BInitGL" << std::endl;
+	//	return false;
+	//}
 	groundPlaneShaderProg = BCreateSceneShaders("groundPlane");
 	if(groundPlaneShaderProg == NULL){
 		std::cout << "groundPlaneShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;
 	}
-	fiveCellShaderProg = BCreateSceneShaders("rasterPolychoron");
-	if(fiveCellShaderProg == NULL){
-		std::cout << "fiveCellShaderProg returned NULL: Graphics::BInitGL" << std::endl;
-		return false;
-	}
-	quadShaderProg = BCreateSceneShaders("quad");
-	if(quadShaderProg == NULL){
-		std::cout << "quadShaderProg returned NULL: Graphics::BInitGL" << std::endl;
-		return false;
-	}
+	//fiveCellShaderProg = BCreateSceneShaders("rasterPolychoron");
+	//if(fiveCellShaderProg == NULL){
+	//	std::cout << "fiveCellShaderProg returned NULL: Graphics::BInitGL" << std::endl;
+	//	return false;
+	//}
+	//quadShaderProg = BCreateSceneShaders("quad");
+	//if(quadShaderProg == NULL){
+	//	std::cout << "quadShaderProg returned NULL: Graphics::BInitGL" << std::endl;
+	//	return false;
+	//}
 	mengerShaderProg = BCreateSceneShaders("mengerAlt");
 	if(mengerShaderProg == NULL){
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
@@ -746,6 +746,7 @@ bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 {
 	//update values from controller actions
 	//if(vrm->BGetRotate3DTrigger()) IncreaseRotationValue(m_pRotationVal);
+	if(vrm->BGetRotate3DTrigger()) machineLearning.bRandomParams = true;
 
 	// for now as fast as possible
 	if ( !m_bDevMode && vrm->m_pHMD )
@@ -995,7 +996,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		currentViewMatrix = vrm->GetCurrentViewMatrix(nEye);
 		currentEyeMatrix = vrm->GetCurrentEyeMatrix(nEye);
 		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-		cameraPosition = glm::vec3(currentViewMatrix[0][3], currentViewMatrix[1][3], currentViewMatrix[2][3]);
+		cameraPosition = glm::vec3(currentViewMatrix[3][0], currentViewMatrix[3][1], currentViewMatrix[3][2]);
 
 		glm::vec4 m_vFarPlaneDimensions = vrm->GetFarPlaneDimensions(nEye);
 		raymarchData.tanFovYOver2 = m_vFarPlaneDimensions.w;
@@ -1011,15 +1012,15 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		double fovYRadians = m_fFov * (PI / 180.0f);
 		//raymarchData.tanFovYOver2 = atan2(fovYRadians, 1.0f);		
 		raymarchData.tanFovYOver2 = tan(fovYRadians / 2.0f);		
+	}
 
-		//rapidmix data
-		if(machineLearning.bRecord){
-			std::vector<glm::vec3> input;
-			std::vector<double> output;
 	
-			input.push_back(cameraPosition);
-		//********* continue here - need to grab some audio and visual parameters and add to output vector *************//
-		}
+	//rapidmix data
+	if(machineLearning.bRecord){
+		std::vector<glm::vec3> input;
+		std::vector<double> output;
+		input.push_back(cameraPosition);
+	//********* continue here - need to grab some audio and visual parameters and add to output vector *************//
 	}
 
 	////draw texture quad
