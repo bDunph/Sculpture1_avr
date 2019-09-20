@@ -326,26 +326,28 @@ GLuint Graphics::BCreateSceneShaders(std::string shaderName){
 	std::string fragShaderName = fragName.append(".frag");
 
 	//load shaders
-	const char* vertShader;
+	std::string vertShader;
 	bool isVertLoaded = load_shader(vertShaderName.c_str(), vertShader);
 	if(!isVertLoaded) return NULL;
 	
-	const char* fragShader;
+	std::string fragShader;
 	bool isFragLoaded = load_shader(fragShaderName.c_str(), fragShader);
 	if(!isFragLoaded) return NULL;
 	
+	const char* vertCString = vertShader.c_str();
 	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vs, 1, &vertShader, NULL);
+	glShaderSource(vs, 1, &vertCString, NULL);
 	glCompileShader(vs);
-	delete[] vertShader;
+	//delete[] vertShader;
 	//check for compile errors
 	bool isVertCompiled = shader_compile_check(vs);
 	if(!isVertCompiled) return NULL;
 	
+	const char* fragCString = fragShader.c_str();
 	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fs, 1, &fragShader, NULL);
+	glShaderSource(fs, 1, &fragCString, NULL);
 	glCompileShader(fs);
-	delete[] fragShader;
+	//delete[] fragShader;
 	//check for compile errors
 	bool isFragCompiled = shader_compile_check(fs);
 	if(!isFragCompiled) return NULL;

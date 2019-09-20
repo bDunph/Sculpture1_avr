@@ -73,90 +73,19 @@ endin
 
 instr 6 ; Hrtf Instrument
 
-S_AzimuthVals[] init 5
-S_ElevationVals[] init 5
-S_DistanceVals[] init 5
-
-iCount = 0
-loop:
-	S_VertNumber sprintf "%i", iCount
-
-	S_AzimuthChannel strcpy "azimuth"	
-	S_ChannelNameAz strcat S_AzimuthChannel, S_VertNumber
-	S_AzimuthVals[iCount] sprintf "%s", S_ChannelNameAz
-
-	S_ElevationChannel strcpy "elevation"
-	S_ChannelNameEl strcat S_ElevationChannel, S_VertNumber
-	S_ElevationVals[iCount] sprintf "%s", S_ChannelNameEl
-
-	S_DistanceChannel strcpy "distance"
-	S_ChannelNameDist strcat S_DistanceChannel, S_VertNumber
-	S_DistanceVals[iCount] sprintf "%s", S_ChannelNameDist
-
-	loop_lt iCount, 1, 5, loop
-
-kAzimuthVals[] init 5
-kElevationVals[] init 5
-kDistanceVals[] init 5
-
 kPortTime linseg 0.0, 0.001, 0.05 
 
-kAzimuthVals[0] chnget S_AzimuthVals[0] 
-kElevationVals[0] chnget S_ElevationVals[0] 
-kDistanceVals[0] chnget S_DistanceVals[0] 
-kDist0 portk kDistanceVals[0], kPortTime ;to filter out audio artifacts due to the distance changing too quickly
+kAzimuthVal chnget "azimuth" 
+kElevationVal chnget "elevation" 
+kDistanceVal chnget "distance" 
+kDist portk kDistanceVal, kPortTime ;to filter out audio artifacts due to the distance changing too quickly
 
-;kAzimuthVals[1] chnget S_AzimuthVals[1] 
-;kElevationVals[1] chnget S_ElevationVals[1] 
-;kDistanceVals[1] chnget S_DistanceVals[1] 
-;kDist1 portk kDistanceVals[1], kPortTime ;to filter out audio artifacts due to the distance changing too quickly
-;
-;kAzimuthVals[2] chnget S_AzimuthVals[2] 
-;kElevationVals[2] chnget S_ElevationVals[2] 
-;kDistanceVals[2] chnget S_DistanceVals[2] 
-;kDist2 portk kDistanceVals[2], kPortTime ;to filter out audio artifacts due to the distance changing too quickly
-;
-;kAzimuthVals[3] chnget S_AzimuthVals[3] 
-;kElevationVals[3] chnget S_ElevationVals[3] 
-;kDistanceVals[3] chnget S_DistanceVals[3] 
-;kDist3 portk kDistanceVals[3], kPortTime ;to filter out audio artifacts due to the distance changing too quickly
-;
-;kAzimuthVals[4] chnget S_AzimuthVals[4] 
-;kElevationVals[4] chnget S_ElevationVals[4] 
-;kDistanceVals[4] chnget S_DistanceVals[4] 
-;kDist4 portk kDistanceVals[4], kPortTime ;to filter out audio artifacts due to the distance changing too quickly
-
-aRightSigs[] init 5
-aLeftSigs[] init 5 
-
-aLeftSigs[0], aRightSigs[0]  hrtfmove2	gaOut1, kAzimuthVals[0], kElevationVals[0], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-aLeftSigs[0] = aLeftSigs[0] / (kDist0 + 0.00001)
-aRightSigs[0] = aRightSigs[0] / (kDist0 + 0.00001)
+aLeftSig, aRightSig  hrtfmove2	gaOut1, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
+aLeftSig = aLeftSig / (kDist + 0.00001)
+aRightSigs = aRightSig / (kDist + 0.00001)
 	
-;aLeftSigs[1], aRightSigs[1]  hrtfmove2	gaOut2, kAzimuthVals[1], kElevationVals[1], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-;aLeftSigs[1] = aLeftSigs[1] / (kDist1 + 0.00001)
-;aRightSigs[1] = aRightSigs[1] / (kDist1 + 0.00001)
-;
-;aLeftSigs[2], aRightSigs[2]  hrtfmove2	gaOut3, kAzimuthVals[2], kElevationVals[2], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-;aLeftSigs[2] = aLeftSigs[2] / (kDist2 + 0.00001)
-;aRightSigs[2] = aRightSigs[2] / (kDist2 + 0.00001)
-;
-;aLeftSigs[3], aRightSigs[3]  hrtfmove2	gaOut4, kAzimuthVals[3], kElevationVals[3], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-;aLeftSigs[3] = aLeftSigs[3] / (kDist3 + 0.00001)
-;aRightSigs[3] = aRightSigs[3] / (kDist3 + 0.00001)
-;
-;aLeftSigs[4], aRightSigs[4]  hrtfmove2	gaOut5, kAzimuthVals[4], kElevationVals[4], "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
-;aLeftSigs[4] = aLeftSigs[4] / (kDist4 + 0.00001)
-;aRightSigs[4] = aRightSigs[4] / (kDist4 + 0.00001)
-
-;aL = (aLeftSigs[0] + aLeftSigs[1] + aLeftSigs[2] + aLeftSigs[3] + aLeftSigs[4]) / 5
-;aR = (aRightSigs[0] + aRightSigs[1] + aRightSigs[2] + aRightSigs[3] + aRightSigs[4]) / 5
-
-aL = aLeftSigs[0]
-aR = aRightSigs[0]
-
-;aLimL	limit	aL,	ampdbfs(-96),	ampdbfs(0)
-;aLimR	limit	aR,	ampdbfs(-96),	ampdbfs(0)
+aL = aLeftSig
+aR = aRightSig
 
 outs	aL,	aR
 endin

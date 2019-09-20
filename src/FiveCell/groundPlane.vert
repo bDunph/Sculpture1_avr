@@ -15,8 +15,8 @@ void main(){
 	
 	texCoordOut = texCoord;
 
-	float scaledPosX = position.x * 100.0;
-	float scaledPosZ = position.z * 100.0;
+	float scaledPosX = position.x * 10.0;
+	float scaledPosZ = position.z * 10.0;
  
 	gl_Position = projMat * viewMat * groundModelMat * vec4(scaledPosX, position.y, scaledPosZ, 1.0);	
 	//gl_Position = projMat * viewMat * groundModelMat * vec4(position, 1.0);

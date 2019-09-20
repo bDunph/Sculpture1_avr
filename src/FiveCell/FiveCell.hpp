@@ -138,7 +138,7 @@ private:
 	//MYFLT* vert2Vol;
 	//MYFLT* vert3Vol;
 	//MYFLT* vert4Vol;
-	MYFLT* hrtfVals[15];
+	MYFLT* hrtfVals[3];
 	MYFLT* randomFrequencyVal;
 	MYFLT* m_pRmsOut;
 

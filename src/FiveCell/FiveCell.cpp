@@ -35,36 +35,38 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	std::string csdName = "";
 	if(!csd.empty()) csdName = csd;
 	session = new CsoundSession(csdName);
-#ifdef _WIN32
-	session->SetOption("-b -128"); 
-	session->SetOption("-B 1024");
-#endif
-	for(int i = 0; i < 1; i++){
-		std::string val1 = "azimuth" + std::to_string(i);
-		const char* azimuth = val1.c_str();	
-		if(session->GetChannelPtr(hrtfVals[3 * i], azimuth, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-			std::cout << "GetChannelPtr could not get the azimuth input" << std::endl;
-			return false;
-		}
-		std::string val2 = "elevation" + std::to_string(i);
-		const char* elevation = val2.c_str();
-		if(session->GetChannelPtr(hrtfVals[(3 * i) + 1], elevation, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-			std::cout << "GetChannelPtr could not get the elevation input" << std::endl;
-			return false;
-		}	
-		std::string val3 = "distance" + std::to_string(i);
-		const char* distance = val3.c_str();
-		if(session->GetChannelPtr(hrtfVals[(3 * i) + 2], distance, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-			std::cout << "GetChannelPtr could not get the distance input" << std::endl;
-			return false;
-		}
 
-		const char* randFreq = "randFreq";
-		if(session->GetChannelPtr(randomFrequencyVal, randFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
-			std::cout << "GetChannelPtr could not get the randFreq value" << std::endl;
-			return false;
-		} 
+#ifdef _WIN32
+	session->SetOption("-b -32"); 
+	session->SetOption("-B 2048");
+#endif
+
+	session->StartThread();
+	session->PlayScore();
+
+	std::string val1 = "azimuth";
+	const char* azimuth = val1.c_str();	
+	if(session->GetChannelPtr(hrtfVals[0], azimuth, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+		std::cout << "GetChannelPtr could not get the azimuth input" << std::endl;
+		return false;
 	}
+	std::string val2 = "elevation";
+	const char* elevation = val2.c_str();
+	if(session->GetChannelPtr(hrtfVals[1], elevation, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+		std::cout << "GetChannelPtr could not get the elevation input" << std::endl;
+		return false;
+	}	
+	std::string val3 = "distance";
+	const char* distance = val3.c_str();
+	if(session->GetChannelPtr(hrtfVals[2], distance, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+		std::cout << "GetChannelPtr could not get the distance input" << std::endl;
+		return false;
+	}
+	const char* randFreq = "randFreq";
+	if(session->GetChannelPtr(randomFrequencyVal, randFreq, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+		std::cout << "GetChannelPtr could not get the randFreq value" << std::endl;
+		return false;
+	} 
 
 //********* output values from csound to avr *******************//
 
@@ -991,162 +993,48 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	modelViewEyeProjectionMat = projMat * eyeMat * viewMat * raymarchQuadModelMatrix;
 	inverseMVEPMat = glm::inverse(modelViewEyeProjectionMat);
 
-	//for(int i = 0; i < 5; i++){
-	//	std::cout << std::to_string(i) << " --- " << std::to_string(vertArray5Cell[i].x) << " : " << std::to_string(vertArray5Cell[i].y) << " : " << std::to_string(vertArray5Cell[i].z) << " : " << std::to_string(vertArray5Cell[i].w) << std::endl;
-	//}
-		
-	//currentFrame = glfwGetTime();
-	//deltaTime = currentFrame - lastFrame;
+	glm::vec4 mengerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::mat4 mengerModelMatrix = glm::mat4(1.0f);		
+
+	//position of menger cube
+	//glm::vec4 posCameraSpace = eyeMat * viewMat * mengerModelMatrix * mengerPosition;;		
+	glm::vec4 posCameraSpace = viewMat * mengerModelMatrix * mengerPosition;;		
+
+	//position of menger cube in world space
+	glm::vec4 posWorldSpace = mengerModelMatrix * mengerPosition;
 	
-	//_update_fps_counter(window);
+	//calculate azimuth and elevation values for hrtf
+	//glm::vec4 viewerPosCameraSpace = viewMat * glm::vec4(camPos, 1.0f);
+	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	glm::vec4 viewerPosWorldSpace = glm::vec4(camPos, 1.0f);;
+
+	glm::vec4 soundPosCameraSpace = posCameraSpace;
+	glm::vec4 soundPosWorldSpace = posWorldSpace;
+
+	float rCamSpace = sqrt(pow(soundPosCameraSpace.x, 2) + pow(soundPosCameraSpace.y, 2) + pow(soundPosCameraSpace.z, 2));
 		
-	//glClearColor(0.87, 0.85, 0.75, 0.95);
-	//wipe the drawing surface clear
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	float rWorldSpace = sqrt(pow(soundPosWorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPosWorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPosWorldSpace.z - viewerPosWorldSpace.z, 2));
 
-	//float rotVal = glm::radians(45.0f);
-	//rotation around W axis
-	//rotationZW = glm::mat4(
-	//	1.0f, 0.0f, 0.0f, 0.0f,
-	//	0.0f, 1.0f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, cos(glfwGetTime() * 0.2f), -sin(glfwGetTime() * 0.2f),
-	//	0.0f, 0.0f, sin(glfwGetTime() * 0.2f), cos(glfwGetTime() * 0.2f)
-	//);
+	//azimuth in camera space
+	float valX = soundPosCameraSpace.x - viewerPosCameraSpace.x;
+	float valZ = soundPosCameraSpace.z - viewerPosCameraSpace.z;
 
-	//rotationXW = glm::mat4(	
-	//	cos(glfwGetTime() * 0.2f), 0.0f, 0.0f, sin(glfwGetTime() * 0.2f),
-	//	0.0f, 1.0f, 0.0f, 0.0f,
-	//	0.0f, 0.0f, 1.0f, 0.0f, 
-	//	-sin(glfwGetTime() * 0.2f), 0.0f, 0.0f, cos(glfwGetTime() * 0.2f) 
-	//);
-
-	//rotationYW = glm::mat4(	
-	//	1.0f, 0.0f, 0.0f, 0.0f,
-	//	0.0f, cos(glfwGetTime() * 0.2f), 0.0f, -sin(glfwGetTime() * 0.2f),
-	//	0.0f, 0.0f, 1.0f, 0.0f, 
-	//	0.0f, sin(glfwGetTime() * 0.2f), 0.0f, cos(glfwGetTime() * 0.2f)
-	//);
-	////coords of verts to use for hrtf calculations 
-	//glm::vec3 projectedVerts [5];
-	//float projectionDistance = 2.0f;
-	////for(int i = 0; i < _countof(vertArray); i++){
-	//	
-	////get values from csound
-	//float vert0AudioSig = *vert0Vol;
-	//float vert1AudioSig = *vert1Vol;
-	//float vert2AudioSig = *vert2Vol;
-	//float vert3AudioSig = *vert3Vol;
-	//float vert4AudioSig = *vert4Vol;
-	////std::cout << vert0AudioSig << std::endl;		
-
-	//vertRms[0] = vert0AudioSig;
-	//vertRms[1] = vert1AudioSig;
-	//vertRms[2] = vert2AudioSig;
-	//vertRms[3] = vert3AudioSig;
-	//vertRms[4] = vert4AudioSig;
-
-	//for(int i = 0; i < 5; i++){
-
-		//glm::vec4 rotatedVert = rotationYW * rotationZW * rotationXW * vertArray5Cell[i];
-
-		//std::cout << std::to_string(vertArray[i].x) << " : " << std::to_string(vertArray[i].y) << " : " << std::to_string(vertArray[i].z) << " : " << std::to_string(vertArray[i].w) << std::endl;
-
-		//float projectedPointX = rotatedVert.x / (projectionDistance - rotatedVert.w); 	
-		//float projectedPointY = rotatedVert.y / (projectionDistance - rotatedVert.w); 	
-		//float projectedPointZ = rotatedVert.z / (projectionDistance - rotatedVert.w); 	
- 	
-		//projectedVerts[i] = glm::vec3(projectedPointX, projectedPointY, projectedPointZ);
-		//std::cout << i << " --- " << projectedVerts[i].x << " : " << projectedVerts[i].y << " : " << projectedVerts[i].z << std::endl;
-			
-		//glm::vec4 posCameraSpace = viewMat * fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0f);
-
-		//******** calculate origin and direction of raycast
-		// setting the ray origin at centre of screen
-		//glm::vec4 rayPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		//glm::vec2 ndcCoord = glm::vec2(rayPos.x / rayPos.w, rayPos.y / rayPos.w); 
-		//// calculate points on near and far planes
-		//glm::vec4 near = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, -1.0f, 1.0f);
-		//glm::vec4 far = inverseMVEPMat * glm::vec4(ndcCoord.x, ndcCoord.y, 1.0f, 1.0f);
-		//glm::vec3 origin = glm::vec3(near.x / near.w, near.y / near.w, near.z / near.w);	
-		//glm::vec3 endPoint = glm::vec3(far.x / far.w, far.y / far.w, far.z / far.w);
-		//glm::vec3 direction = endPoint - origin;
-		//direction = glm::normalize(direction);	 	
-		//float distToCubeSurface = distanceToObject(origin, direction);
-		//float distToCubeCentre = distToCubeSurface + 0.5f;
-		//glm::vec3 cubePosition = origin + distToCubeCentre * direction;
-		glm::vec4 mengerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		glm::mat4 mengerModelMatrix = glm::mat4(1.0f);		
-
-		//position of menger cube
-		glm::vec4 posCameraSpace = eyeMat * viewMat * mengerModelMatrix * mengerPosition;;		
-		//std::cout << i << " --- " << posCameraSpace.x << " : " << posCameraSpace.y << " : " << posCameraSpace.z << " : " << posCameraSpace.w << std::endl;
-
-		//glm::vec4 posWorldSpace = fiveCellModelMatrix * glm::vec4(projectedVerts[i], 1.0);
-		//position of menger cube in world space
-		glm::vec4 posWorldSpace = mengerModelMatrix * mengerPosition;
-		//std::cout << "Cube Position World Space " << posWorldSpace.x << " - " << posWorldSpace.y << " - " << posWorldSpace.z << std::endl; 
-		//calculate azimuth and elevation values for hrtf
-		
-		glm::vec4 viewerPosCameraSpace = eyeMat * viewMat * glm::vec4(camPos, 1.0f);
-		glm::vec4 viewerPosWorldSpace = glm::vec4(camPos, 1.0f);;
-		//std::cout << i << " --> " << viewerPosWorldSpace.x << " : " << viewerPosWorldSpace.y << " : " << viewerPosWorldSpace.z << std::endl;
-
-		glm::vec4 soundPosCameraSpace = posCameraSpace;
-		glm::vec4 soundPosWorldSpace = posWorldSpace;
-
-		//std::cout << i << " --- " << soundPosCameraSpace.x << " : " << soundPosCameraSpace.y << " : " << soundPosCameraSpace.z << std::endl;
-		//std::cout << i << " --- " << soundPosWorldSpace.x << " : " << soundPosWorldSpace.y << " : " << soundPosWorldSpace.z << std::endl;
-		//distance
-		//float r = sqrt((pow((soundPosCameraSpace.x - viewerPosCameraSpace.x), 2)) + (pow((soundPosCameraSpace.y - viewerPosCameraSpace.y), 2)) + (pow((soundPosCameraSpace.z - viewerPosCameraSpace.z), 2)));
-		float rCamSpace = sqrt(pow(soundPosCameraSpace.x, 2) + pow(soundPosCameraSpace.y, 2) + pow(soundPosCameraSpace.z, 2));
-		
-		float rWorldSpace = sqrt(pow(soundPosWorldSpace.x - viewerPosWorldSpace.x, 2) + pow(soundPosWorldSpace.y - viewerPosWorldSpace.y, 2) + pow(soundPosWorldSpace.z - viewerPosWorldSpace.z, 2));
-		//std::cout << r << std::endl;	
-
-		//azimuth in camera space
-		float valX = soundPosCameraSpace.x - viewerPosCameraSpace.x;
-		float valZ = soundPosCameraSpace.z - viewerPosCameraSpace.z;
-
-		float azimuth = atan2(valX, valZ);
-		azimuth *= (180.0f/PI); 	
-		//float azimuth = 0.0f;
-		//std::cout << azimuth << std::endl;
+	float azimuth = atan2(valX, valZ);
+	azimuth *= (180.0f/PI); 	
 	
-		//elevation in world space
-		
-		float oppSide = soundPosWorldSpace.y - viewerPosWorldSpace.y;
-		//float oppSide = -soundPosCameraSpace.y;
-
-		//std::cout << i << " : " << soundPosWorldSpace.y << " -- SoundPosition" << std::endl;
-		//std::cout << i << " : " << viewerPosWorldSpace.y << std::endl;
-		//std::cout << i << " : " << oppSide << std::endl;
-		
-		//float adjSide = abs(sqrt(pow(r, 2) - pow(oppSide, 2)));
-		//float elevation = atan2(oppSide, adjSide);
-		float sinVal = oppSide / rWorldSpace;
-		float elevation = asin(sinVal);
-		elevation *= (180.0f/PI);		
-		//if(oppSide >= 0){
-		//	if(elevation > 90.0f) elevation = 90.0f;
-		//} else if(oppSide < 0){
-		//	if(elevation < -40.f) elevation = -40.0f;
-		//}
-		//std::cout << i << " --> " << elevation << std::endl;
-		//float elevation = 0.0f;
-
-		//*hrtfVals[3 * i] = (MYFLT)azimuth;
-		//*hrtfVals[(3 * i) + 1] = (MYFLT)elevation;
-		//*hrtfVals[(3 * i) + 2] = (MYFLT)rCamSpace;
-		*hrtfVals[0] = (MYFLT)azimuth;
-		*hrtfVals[1] = (MYFLT)elevation;
-		*hrtfVals[2] = (MYFLT)rCamSpace;
-
-		//std::cout << std::to_string(i) << " --- " << std::to_string(*hrtfVals[3 * i]) << " : " << std::to_string(*hrtfVals[(3 * i) + 1]) << " : " << std::to_string(*hrtfVals[(3 * i) + 2]) << std::endl;
-		
-		//update sound object position
-		//soundObjects[i].update(glm::vec3(posWorldSpace), vertRms[i]);	
-		//std::cout << std::to_string(projectedVerts[i].x) << " : " << std::to_string(projectedVerts[i].y) << " : " << std::to_string(projectedVerts[i].z) << std::endl;
-	//}
+	//elevation in world space
+	//float oppSide = soundPosWorldSpace.y - viewerPosWorldSpace.y;
+	//float sinVal = oppSide / rWorldSpace;
+	
+	//elevation in camera space
+	float oppSide = soundPosCameraSpace.y - viewerPosCameraSpace.y;
+	float sinVal = oppSide / rCamSpace;
+	float elevation = asin(sinVal);
+	elevation *= (180.0f/PI);		
+	
+	*hrtfVals[0] = (MYFLT)azimuth;
+	*hrtfVals[1] = (MYFLT)elevation;
+	*hrtfVals[2] = (MYFLT)rCamSpace;
 
 //*********************************************************************************************
 // Machine Learning 

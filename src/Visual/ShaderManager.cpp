@@ -13,26 +13,45 @@
 #include <iostream>
 #include <fstream>
 
-bool load_shader(const char* filename, const char* &string){
+bool load_shader(const char* filename, std::string &string){
 	//read shaders from file
-	FILE* f = fopen(filename, "r");
+	//FILE* f = fopen(filename, "r");
+	std::ifstream file(filename);
+	std::string text;
+	std::string textToString;
 
-	if(!f){
-		fprintf(stderr, "ERROR: %s not opened", filename);
-		return false;
+	while(std::getline(file, text)){
+		textToString += text;
+		textToString.push_back('\n');
 	}
 
-	//Determine file size
-	fseek(f, 0, SEEK_END);
-	size_t size = ftell(f);
+	//std::cout << textToString << std::endl;
+	
+	string = textToString;
 
-	//calloc() initialises memory to zero
-	string = (const char*)calloc(sizeof(char), size + 1);
-
-	rewind(f);
-	fread((void*)string, sizeof(char), size, f);
-	printf("%s\n", string);
 	return true;
+	//if(!f){
+	//	fprintf(stderr, "ERROR: %s not opened", filename);
+	//	return false;
+	//}
+
+	////Determine file size
+	//fseek(f, 0, SEEK_END);
+	//size_t size = ftell(f);
+
+	////calloc() initialises memory to zero
+	//string = (char*)calloc(sizeof(char), size + 1);
+
+	//rewind(f);
+	////fread((void*)string, sizeof(char), size, f);
+	//if(fgets(string, size + 1, f) != NULL){
+	//	printf("%s\n", string);
+	//	return true;
+	//} 
+	//
+	//return false;
+
+	
 }
 
 

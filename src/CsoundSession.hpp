@@ -23,7 +23,6 @@ public:
 		m_csd = "";
 		if(!csdFileName.empty()){
 			m_csd = csdFileName;
-			StartThread(); 
 		}
 	};
 	void StartThread();
