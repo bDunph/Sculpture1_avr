@@ -66,25 +66,7 @@
                },
                "mode" : "button",
                "path" : "/user/hand/right/input/application_menu"
-            },
-	    {
-		    "inputs" : {
-			    "click" : {
-				    "output" : "/actions/avr/in/RotateStructure"
-			    }
-		    },
-		    "mode" : "button",
-		    "path" : "/user/hand/left/input/grip"
-	    },
-	    {
-		    "inputs" : {
-			    "click" : {
-				    "output" : "/actions/avr/in/RotateStructure"
-			    }
-		    },
-		    "mode" : "button",
-		    "path" : "/user/hand/right/input/grip"
-	    }
+            } 
          ]
       }
    },
