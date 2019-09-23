@@ -1089,13 +1089,13 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		// this for loop should use eHand iterators from VR_Manager
 		for (int i = 0; i <= 1; i++)
 		{
-			if (!vrm->m_rHand[i].m_bShowController || !vrm->m_rHand[i].m_pRenderModel)
+			if (!vrm->m_rHand[Left].m_bShowController || !vrm->m_rHand[Left].m_pRenderModel || !vrm->m_rHand[Right].m_bShowController || !vrm->m_rHand[Right].m_pRenderModel)
 				continue;
 
+			std::cout << "DRAW CONTROLLER" << std::endl;
 			const glm::mat4& matDeviceToTracking = vrm->m_rHand[i].m_rmat4Pose;
 			glm::mat4 matMVP = vrm->GetCurrentViewProjectionMatrix(nEye) * matDeviceToTracking;
 			glUniformMatrix4fv(m_nRenderModelMatrixLocation, 1, GL_FALSE, &matMVP[0][0]);
-
 			vrm->m_rHand[i].m_pRenderModel->Draw();
 		}
 
