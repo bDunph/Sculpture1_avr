@@ -38,7 +38,7 @@ public:
 	glm::mat4 GetCurrentProjectionMatrix(vr::Hmd_Eye nEye);
 	glm::mat4 GetCurrentEyeMatrix(vr::Hmd_Eye nEye);
 
-	bool BGetRotate3DTrigger();
+	//bool BGetRotate3DTrigger();
 	float GetNearClip();
 	float GetFarClip();
 
@@ -98,13 +98,32 @@ private:
 	
 	VRActionSetHandle_t m_actionsetAvr = vr::k_ulInvalidActionSetHandle;
 #elif _WIN32
-	vr::VRActionHandle_t m_actionRotateStructure = vr::k_ulInvalidActionHandle;
+	//generic actions
 	vr::VRActionHandle_t m_actionHideThisController = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionTriggerHaptic = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionAnalongInput = vr::k_ulInvalidActionHandle;
-	
+
 	vr::VRActionSetHandle_t m_actionsetAvr = vr::k_ulInvalidActionSetHandle;
+
+	//machine learning actions
+	vr::VRActionHandle_t m_actionRandomParameters = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionRecordTrainingExample = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionTrainModel = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionRunModel = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionSaveModel = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_actionLoadModel = vr::k_ulInvalidActionHandle;
+
+	vr::VRActionSetHandle_t m_actionSetMachineLearning = vr::k_ulInvalidActionSetHandle;
 #endif
+
+	//machine learning bools from vive controller
+	bool m_bViveRandParams;
+	bool m_bViveRecordTrainingExample;
+	bool m_bViveTrainModel;
+	bool m_bViveRunModel;
+	bool m_bViveSaveModel;
+	bool m_bViveLoadModel;
+	bool m_bCurrentDeviceState;
 
 	vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 	int m_iValidPoseCount;
@@ -114,8 +133,5 @@ private:
 	float m_fNearClip;
 	float m_fFarClip;
 	bool m_bDebugPrint;
-
-	bool m_bRotate3D;
-	
 };
 #endif

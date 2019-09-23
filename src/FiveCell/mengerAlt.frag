@@ -107,7 +107,7 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
         //float dist = sceneSDF((eye + depth * marchingDirection) / (randSize + 1.0)) * (randSize + 1.0);
 	vec3 pointPos = eye + depth * marchingDirection;
 	//vec3 translatedPoint = pointPos + vec3(0.0, -1.5, 0.0);
-        float dist = sceneSDF(pointPos);
+        float dist = sceneSDF((pointPos) / (randSize + 1.0)) * (randSize + 1.0);
         if (dist < EPSILON) {
 		return depth;
         }

@@ -116,6 +116,11 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	m_bPrevTrainState = false;
 	m_bPrevHaltState = false;
 	m_bPrevLoadState = false;
+	m_bMsg = true;
+	m_bCurrentMsgState = false;
+	m_bRunMsg = true;
+	m_bCurrentRunMsgState = false;
+	sizeVal = 0.0f;
 
 //********************************************************************************************
 
@@ -1058,94 +1063,144 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	}
 	m_bPrevRandomState = machineLearning.bRandomParams;
 
-	//if(machineLearning.bRecord){
-	//	inputData.push_back((double)viewerPosWorldSpace.x);	
-	//	inputData.push_back((double)viewerPosWorldSpace.y);	
-	//	inputData.push_back((double)viewerPosWorldSpace.z);	
+	if(machineLearning.bRecord){
+		inputData.push_back((double)viewerPosWorldSpace.x);	
+		inputData.push_back((double)viewerPosWorldSpace.y);	
+		inputData.push_back((double)viewerPosWorldSpace.z);	
 
-	//	outputData.push_back((double)*randomFrequencyVal);
-	//	outputData.push_back((double)sizeVal);
+		outputData.push_back((double)*randomFrequencyVal);
+		outputData.push_back((double)sizeVal);
 
-//#ifdef __APPLE__
-	//	trainingData.recordSingleElement(inputData, outputData);	
-//#elif _WIN32
-	//	trainingData.input = inputData;
-	//	trainingData.output = outputData;
-	//	trainingSet.push_back(trainingData);
-//#endif
+#ifdef __APPLE__
+		trainingData.recordSingleElement(inputData, outputData);	
+#elif _WIN32
+		trainingData.input = inputData;
+		trainingData.output = outputData;
+		trainingSet.push_back(trainingData);
+#endif
 
-	//	std::cout << "Recording Data" << std::endl;
-	//	inputData.clear();
-	//	outputData.clear();
-	//}
-	//machineLearning.bRecord = false;
+		std::cout << "Recording Data" << std::endl;
+		inputData.clear();
+		outputData.clear();
+	}
+	machineLearning.bRecord = false;
 
-	//bool currentTrainState = m_bPrevTrainState;
-	//if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
+	bool currentTrainState = m_bPrevTrainState;
+	if(machineLearning.bTrainModel != currentTrainState && machineLearning.bTrainModel == true){
 
-//#ifdef __APPLE__
-	//	staticRegression.train(trainingData);
-//#elif _WIN32
-	//	staticRegression.train(trainingSet);
-//#endif
+#ifdef __APPLE__
+		staticRegression.train(trainingData);
+#elif _WIN32
+		staticRegression.train(trainingSet);
+#endif
 
-	//	std::cout << "Model Trained" << std::endl;
-	//}	
-	//m_bPrevTrainState = machineLearning.bTrainModel;
+		std::cout << "Model Trained" << std::endl;
+	}	
+	m_bPrevTrainState = machineLearning.bTrainModel;
 
-	//bool currentHaltState = m_bPrevHaltState;
-	//if(machineLearning.bRunModel && !machineLearning.bHaltModel){
-	//	std::vector<double> modelOut;
-	//	std::vector<double> modelIn;
+#ifdef __APPLE__
+	bool currentHaltState = m_bPrevHaltState;
+	if(machineLearning.bRunModel && !machineLearning.bHaltModel){
+		std::vector<double> modelOut;
+		std::vector<double> modelIn;
 
-	//	modelIn.push_back((double)viewerPosWorldSpace.x);
-	//	modelIn.push_back((double)viewerPosWorldSpace.y);
-	//	modelIn.push_back((double)viewerPosWorldSpace.z);
+		modelIn.push_back((double)viewerPosWorldSpace.x);
+		modelIn.push_back((double)viewerPosWorldSpace.y);
+		modelIn.push_back((double)viewerPosWorldSpace.z);
 
-	//	modelOut = staticRegression.run(modelIn);
+		modelOut = staticRegression.run(modelIn);
 
-	//	if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
-	//	if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
-	//	*randomFrequencyVal = (MYFLT)modelOut[0];
-	//	if(modelOut[1] > 4.0f) modelOut[0] = 4.0f;
-	//	if(modelOut[1] < 1.0f) modelOut[0] = 1.0f;
-	//	sizeVal = (float)modelOut[1];
-	//	std::cout << "Model Running" << std::endl;
-	//	modelIn.clear();
-	//	modelOut.clear();
-	//} else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState){
-	//	machineLearning.bRunModel = false;
-	//	std::cout << "Model Stopped" << std::endl;
-	//}
-	//m_bPrevHaltState = machineLearning.bHaltModel;
+		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
+		*randomFrequencyVal = (MYFLT)modelOut[0];
+		if(modelOut[1] > 4.0f) modelOut[0] = 4.0f;
+		if(modelOut[1] < 1.0f) modelOut[0] = 1.0f;
+		sizeVal = (float)modelOut[1];
+		std::cout << "Model Running" << std::endl;
+		modelIn.clear();
+		modelOut.clear();
+	} else if(!machineLearning.bRunModel && machineLearning.bHaltModel != currentHaltState){
+		machineLearning.bRunModel = false;
+		std::cout << "Model Stopped" << std::endl;
+	}
+	m_bPrevHaltState = machineLearning.bHaltModel;
+#elif _WIN32
+	if(machineLearning.bRunModel){
+		std::vector<double> modelOut;
+		std::vector<double> modelIn;
 
-	//std::string mySavedModel = "mySavedModel.json";
-	//bool currentSaveState = m_bPrevSaveState;
-	//if(machineLearning.bSaveTrainingData!= currentSaveState && machineLearning.bSaveTrainingData == true){
+		modelIn.push_back((double)viewerPosWorldSpace.x);
+		modelIn.push_back((double)viewerPosWorldSpace.y);
+		modelIn.push_back((double)viewerPosWorldSpace.z);
 
-//#ifdef __APPLE__
-	//	trainingData.writeJSON(mySavedModel);	
-//#elif _WIN32
-	//	staticRegression.writeJSON(mySavedModel);
-//#endif
+		modelOut = staticRegression.run(modelIn);
 
-	//	std::cout << "Saving Training Data" << std::endl;
-	//}
-	//m_bPrevSaveState = machineLearning.bSaveTrainingData;
-	//
-	//bool currentLoadState = m_bPrevLoadState;
-	//if(machineLearning.bLoadTrainingData != currentLoadState && machineLearning.bLoadTrainingData == true){
-	//	
-//#ifdef __APPLE__
-	//	trainingData.readJSON(mySavedModel);
-	//	staticRegression.train(trainingData);
-//#elif _WIN32
-	//	staticRegression.readJSON(mySavedModel);	
-//#endif
+		if(modelOut[0] > 10.0f) modelOut[0] = 10.0f;
+		if(modelOut[0] < 1.0f) modelOut[0] = 1.0f;
+		*randomFrequencyVal = (MYFLT)modelOut[0];
+		if(modelOut[1] > 4.0f) modelOut[0] = 4.0f;
+		if(modelOut[1] < 1.0f) modelOut[0] = 1.0f;
+		sizeVal = (float)modelOut[1];
 
-	//	std::cout << "Loading Data and Training Model" << std::endl;
-	//}
-	//m_bPrevLoadState = machineLearning.bLoadTrainingData;
+		bool prevRunMsgState = m_bCurrentRunMsgState;
+		if(m_bRunMsg != prevRunMsgState && m_bRunMsg == true){
+			std::cout << "Model Running" << std::endl;
+			m_bRunMsg = !m_bRunMsg;
+		}
+		m_bCurrentRunMsgState = m_bRunMsg;
+
+		modelIn.clear();
+		modelOut.clear();
+		m_bMsg = true;
+	} else if(!machineLearning.bRunModel){
+		bool prevMsgState = m_bCurrentMsgState;
+		if(m_bMsg != prevMsgState && m_bMsg == true){
+			std::cout << "Model Stopped" << std::endl;
+			m_bMsg = !m_bMsg;
+		}
+		m_bCurrentMsgState = m_bMsg;
+		m_bRunMsg = true;
+	}
+#endif
+		
+	std::string mySavedModel = "mySavedModel.json";
+	bool currentSaveState = m_bPrevSaveState;
+#ifdef __APPLE__
+	if(machineLearning.bSaveTrainingData!= currentSaveState && machineLearning.bSaveTrainingData == true){
+
+		trainingData.writeJSON(mySavedModel);	
+
+		std::cout << "Saving Training Data" << std::endl;
+	}
+	m_bPrevSaveState = machineLearning.bSaveTrainingData;
+#elif _WIN32
+	if(machineLearning.bSaveModel!= currentSaveState && machineLearning.bSaveModel == true){
+
+		staticRegression.writeJSON(mySavedModel);
+		std::cout << "Saving Training Data" << std::endl;
+	}
+	m_bPrevSaveState = machineLearning.bSaveModel;
+#endif
+
+	bool currentLoadState = m_bPrevLoadState;
+#ifdef __APPLE__
+	if(machineLearning.bLoadTrainingData != currentLoadState && machineLearning.bLoadTrainingData == true){
+	
+		trainingData.readJSON(mySavedModel);
+		staticRegression.train(trainingData);
+
+		std::cout << "Loading Data and Training Model" << std::endl;
+	}
+	m_bPrevLoadState = machineLearning.bLoadTrainingData;
+#elif _WIN32
+	if(machineLearning.bLoadModel != currentLoadState && machineLearning.bLoadModel == true){
+	
+		staticRegression.readJSON(mySavedModel);	
+
+		std::cout << "Loading Data and Training Model" << std::endl;
+	}
+	m_bPrevLoadState = machineLearning.bLoadModel;
+#endif
 
 //*********************************************************************************************
 	

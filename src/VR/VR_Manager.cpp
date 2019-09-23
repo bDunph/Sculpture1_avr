@@ -24,10 +24,16 @@
 // Constructor
 //------------------------------------------
 VR_Manager::VR_Manager(std::unique_ptr<ExecutionFlags>& flagPtr) : 
-	m_bRotate3D(false),
 	m_pHMD(NULL),
 	m_iValidPoseCount(0),
-	m_strPoseClasses(""){
+	m_strPoseClasses(""),
+	m_bViveRandParams(false),
+	m_bViveRecordTrainingExample(false),
+	m_bViveTrainModel(false),
+	m_bViveRunModel(false),
+	m_bViveSaveModel(false),
+	m_bViveLoadModel(false),
+	m_bCurrentDeviceState(false){
 
 	helper = std::make_unique<VR_Helper>();
 
@@ -68,13 +74,12 @@ bool VR_Manager::BInit(){
 
 //*********** removing pathtools from osx build *************//
 #ifdef __APPLE__
-	std::string manifestPath = "/Users/bryandunphy/Projects/5CellAVR/src/VR/avr_actions.json";
+	std::string manifestPath = "/Users/bryandunphy/Projects/5CellAVR/src/VR/avr_iml_actions.json";
 	vr::VRInput()->SetActionManifestPath(manifestPath.c_str()); 
 #elif _WIN32
-	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "../../src/VR/avr_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
+	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "../../src/VR/avr_iml_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
 #endif
 	
-	vr::VRInput()->GetActionHandle( "/actions/avr/in/RotateStructure", &m_actionRotateStructure);
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/HideThisController", &m_actionHideThisController);
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/TriggerHaptic", &m_actionTriggerHaptic );
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/AnalogInput", &m_actionAnalongInput );
@@ -88,6 +93,16 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->GetActionHandle( "/actions/avr/out/Haptic_Right", &m_rHand[Right].m_actionHaptic );
 	vr::VRInput()->GetInputSourceHandle( "/user/hand/right", &m_rHand[Right].m_source );
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/Hand_Right", &m_rHand[Right].m_actionPose );
+
+	//machine learning actions
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/RandomiseParameters", &m_actionRandomParameters);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/RecordTrainingExample", &m_actionRecordTrainingExample);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/TrainModel", &m_actionTrainModel);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/RunModel", &m_actionRunModel);
+	vr::VRInput()->GetActionHandle("/actions/machinelearning/in/Savemodel", &m_actionSaveModel);
+	vr::VRInput()->GetActionHandle("/actions/machineLearning/in/LoadModel", &m_actionLoadModel);
+
+	vr::VRInput()->GetActionSetHandle("/actions/machineLearning", &m_actionSetMachineLearning);
 
 	m_fNearClip = 0.1f;
 	m_fFarClip = 30.0f;
@@ -149,19 +164,69 @@ bool VR_Manager::HandleInput()
 	// UpdateActionState is called each frame to update the state of the actions themselves. The application
 	// controls which action sets are active with the provided array of VRActiveActionSet_t structs.
 	vr::VRActiveActionSet_t actionSet = {0};
-	actionSet.ulActionSet = m_actionsetAvr;
+	actionSet.ulActionSet = m_actionSetMachineLearning;
 	vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
 
-	m_bRotate3D = false;
-	vr::VRInputValueHandle_t ulDevice;
-	if(helper->GetDigitalActionState(m_actionRotateStructure, &ulDevice))
-	{
-		if(ulDevice == m_rHand[Left].m_source || ulDevice == m_rHand[Right].m_source)
-		{
-			m_bRotate3D = true;
+	//machine learning controls
+	vr::VRInputValueHandle_t ulRandomDevice;
+	if(helper->GetDigitalActionState(m_actionRandomParameters, &ulRandomDevice)){
+		if(ulRandomDevice == m_rHand[Left].m_source || ulRandomDevice == m_rHand[Right].m_source){
+			m_bViveRandParams = true;
 		}
-	} 
+	} else {	
+		m_bViveRandParams = false;
+	}
 
+	vr::VRInputValueHandle_t ulRecordDevice;
+	if(helper->GetDigitalActionState(m_actionRecordTrainingExample, &ulRecordDevice)){
+		if(ulRecordDevice == m_rHand[Left].m_source || ulRecordDevice == m_rHand[Right].m_source){
+			m_bViveRecordTrainingExample = true;
+		}
+	} else {
+		m_bViveRecordTrainingExample = false;
+	}
+
+	vr::VRInputValueHandle_t ulTrainDevice;
+	if(helper->GetDigitalActionState(m_actionTrainModel, &ulTrainDevice)){
+		if(ulTrainDevice == m_rHand[Left].m_source || ulTrainDevice == m_rHand[Right].m_source){
+			m_bViveTrainModel = true;
+		}
+	} else {
+		m_bViveTrainModel = false;
+	}
+
+	//TODO I have button logic here because it is switching based on the opposite value of 
+	//m_bViveRunModel. It would be better to keep the button logic in FiveCell.cpp with the other 
+	//controls and just have a true/false switch here.
+	vr::VRInputValueHandle_t ulRunDevice;
+	bool deviceCall = helper->GetDigitalActionState(m_actionRunModel, &ulRunDevice);
+	bool prevDeviceState = m_bCurrentDeviceState;
+	if(deviceCall && deviceCall != prevDeviceState){
+		if(ulRunDevice == m_rHand[Left].m_source || ulRunDevice == m_rHand[Right].m_source){
+			m_bViveRunModel = !m_bViveRunModel;
+		}
+	}
+	m_bCurrentDeviceState = deviceCall;
+
+	vr::VRInputValueHandle_t ulSaveDevice;
+	if(helper->GetDigitalActionState(m_actionSaveModel, &ulSaveDevice)){
+		if(ulSaveDevice == m_rHand[Left].m_source || ulSaveDevice == m_rHand[Right].m_source){
+			m_bViveSaveModel = true;
+		}
+	} else {
+		m_bViveSaveModel = false;
+	}
+
+	vr::VRInputValueHandle_t ulLoadDevice;
+	if(helper->GetDigitalActionState(m_actionLoadModel, &ulLoadDevice)){
+		if(ulLoadDevice == m_rHand[Left].m_source || ulLoadDevice == m_rHand[Right].m_source){
+			m_bViveLoadModel = true;
+		}
+	} else {
+		m_bViveLoadModel = false;
+	}
+
+	//generic controls
 	vr::VRInputValueHandle_t ulHapticDevice;
 	if (helper->GetDigitalActionRisingEdge(m_actionTriggerHaptic, &ulHapticDevice))
 	{
@@ -575,9 +640,9 @@ glm::mat4 VR_Manager::GetHMDMatrixPoseEye(vr::Hmd_Eye nEye)
 	return glm::inverse(matrixObj);
 }
 
-bool VR_Manager::BGetRotate3DTrigger(){
-	return m_bRotate3D;
-}
+//bool VR_Manager::BGetRotate3DTrigger(){
+//	return m_bRotate3D;
+//}
 
 float VR_Manager::GetNearClip()
 {

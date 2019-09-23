@@ -28,6 +28,7 @@ public:
 	void CleanUpGL(std::unique_ptr<VR_Manager>& vrm);
 	bool BSetupCompanionWindow();
 	//void DevMouseCallback(GLFWwindow* window, double xpos, double ypos);
+	void GetControllerEvents(std::unique_ptr<VR_Manager>& vrm);
 	void DevProcessInput(GLFWwindow *window);
 	bool BRenderFrame(std::unique_ptr<VR_Manager>& vrm);
 	void RenderControllerAxes(std::unique_ptr<VR_Manager>& vrm);

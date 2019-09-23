@@ -678,6 +678,20 @@ void DevMouseCallback(GLFWwindow* window, double xpos, double ypos){
     	m_vec3DevCamFront = glm::normalize(front);	
 }
 
+//***********************************************************************************************************
+// Get Info from Vive Controllers
+// **********************************************************************************************************
+void Graphics::GetControllerEvents(std::unique_ptr<VR_Manager>& vrm){
+
+	machineLearning.bRandomParams = vrm->m_bViveRandParams;
+	machineLearning.bRecord = vrm->m_bViveRecordTrainingExample;
+	machineLearning.bTrainModel = vrm->m_bViveTrainModel;
+	machineLearning.bRunModel = vrm->m_bViveRunModel;
+	machineLearning.bSaveModel = vrm->m_bViveSaveModel;
+	machineLearning.bLoadModel = vrm->m_bViveLoadModel;
+
+}
+// **********************************************************************************************************
 
 void Graphics::DevProcessInput(GLFWwindow *window){
 	
@@ -748,11 +762,12 @@ bool Graphics::BRenderFrame(std::unique_ptr<VR_Manager>& vrm)
 {
 	//update values from controller actions
 	//if(vrm->BGetRotate3DTrigger()) IncreaseRotationValue(m_pRotationVal);
-	if(vrm->BGetRotate3DTrigger()) machineLearning.bRandomParams = true;
+	//if(vrm->BGetRotate3DTrigger()) machineLearning.bRandomParams = true;
 
 	// for now as fast as possible
 	if ( !m_bDevMode && vrm->m_pHMD )
 	{
+		GetControllerEvents(vrm);
 		RenderControllerAxes(vrm);
 		RenderStereoTargets(vrm);
 		RenderCompanionWindow();
@@ -1018,12 +1033,12 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 
 	
 	//rapidmix data
-	if(machineLearning.bRecord){
-		std::vector<glm::vec3> input;
-		std::vector<double> output;
-		input.push_back(cameraPosition);
-	//********* continue here - need to grab some audio and visual parameters and add to output vector *************//
-	}
+	//if(machineLearning.bRecord){
+	//	std::vector<glm::vec3> input;
+	//	std::vector<double> output;
+	//	input.push_back(cameraPosition);
+	////********* continue here - need to grab some audio and visual parameters and add to output vector *************//
+	//}
 
 	////draw texture quad
 	//glBindVertexArray(quadVAO);

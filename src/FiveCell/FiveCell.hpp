@@ -35,6 +35,8 @@ public:
 		bool bSaveTrainingData;
 		bool bHaltModel;
 		bool bLoadTrainingData;
+		bool bSaveModel;
+		bool bLoadModel;
 	};
 
 	bool setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GLuint groundPlaneProg, GLuint fiveCellProg, GLuint quadShaderProg);
@@ -180,6 +182,7 @@ private:
 	regression staticRegression;
 	trainingExample trainingData;
 	std::vector<trainingExample> trainingSet;
+	bool m_bPrevRunHaltState;
 #endif
 
 	std::vector<double> inputData;
@@ -190,6 +193,10 @@ private:
 	bool m_bPrevTrainState;
 	bool m_bPrevHaltState;
 	bool m_bPrevLoadState;
+	bool m_bCurrentMsgState;
+	bool m_bMsg;
+	bool m_bRunMsg;
+	bool m_bCurrentRunMsgState;
 
 };
 #endif
