@@ -3,6 +3,16 @@
    "alias_info" : {},
    "bindings" : {
       "/actions/avr" : {
+         "poses" : [
+            {
+               "output" : "/actions/avr/in/hand_left",
+               "path" : "/user/hand/left/pose/raw"
+            },
+            {
+               "output" : "/actions/avr/in/hand_right",
+               "path" : "/user/hand/right/pose/raw"
+            }
+         ],
          "sources" : []
       },
       "/actions/legacy" : {
@@ -217,7 +227,7 @@
    "category" : "steamvr_input",
    "controller_type" : "vive_controller",
    "description" : "Bindings for machine learning controls.",
-   "name" : "avr_iml_default_bindings",
+   "name" : "avr_iml_default_binding",
    "options" : {},
    "simulated_actions" : []
 }

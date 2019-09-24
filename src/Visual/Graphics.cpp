@@ -869,6 +869,7 @@ void Graphics::RenderControllerAxes(std::unique_ptr<VR_Manager>& vrm)
 		if ( !vrm->m_rHand[i].m_bShowController )
 			continue;
 
+
 		const glm::mat4& mat = vrm->m_rHand[i].m_rmat4Pose;
 
 		glm::vec4 center = mat * glm::vec4( 0, 0, 0, 1 );
@@ -938,6 +939,7 @@ void Graphics::RenderControllerAxes(std::unique_ptr<VR_Manager>& vrm)
 	// set vertex data if we have some
 	if( vertdataarray.size() > 0 )
 	{
+		//std::cout << "CONTROLLERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" << std::endl;
 		//$ TODO: Use glBufferSubData for this...
 		glBufferData( GL_ARRAY_BUFFER, sizeof(float) * vertdataarray.size(), &vertdataarray[0], GL_STREAM_DRAW );
 	}
@@ -1064,9 +1066,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//update variables for fiveCell
 	fiveCell.update(currentProjMatrix, currentViewMatrix, currentEyeMatrix, cameraFront, cameraPosition, machineLearning);
 	
-	//draw fiveCell scene
-	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg);
-
+	// draw controllers before scene	
 	if(!m_bDevMode && vrm){
 	
 		bool bIsInputAvailable = vrm->m_pHMD->IsInputAvailable();
@@ -1087,7 +1087,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 		// this for loop should use eHand iterators from VR_Manager
 		for (int i = 0; i <= 1; i++)
 		{
-			if (!vrm->m_rHand[Left].m_bShowController || !vrm->m_rHand[Left].m_pRenderModel || !vrm->m_rHand[Right].m_bShowController || !vrm->m_rHand[Right].m_pRenderModel)
+			if(!vrm->m_rHand[i].m_bShowController || !vrm->m_rHand[i].m_pRenderModel)
 				continue;
 
 			std::cout << "DRAW CONTROLLER" << std::endl;
@@ -1099,6 +1099,10 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 
 		glUseProgram(0);
 	}
+
+	//draw fiveCell scene
+	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg);
+
 }
 
 //-----------------------------------------------------------------------------

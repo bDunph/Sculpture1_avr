@@ -103,7 +103,7 @@ private:
 	vr::VRActionHandle_t m_actionTriggerHaptic = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_actionAnalongInput = vr::k_ulInvalidActionHandle;
 
-	vr::VRActionSetHandle_t m_actionsetAvr = vr::k_ulInvalidActionSetHandle;
+	vr::VRActionSetHandle_t m_actionSetAvr = vr::k_ulInvalidActionSetHandle;
 
 	//machine learning actions
 	vr::VRActionHandle_t m_actionRandomParameters = vr::k_ulInvalidActionHandle;

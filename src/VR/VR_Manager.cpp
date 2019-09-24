@@ -85,7 +85,7 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/TriggerHaptic", &m_actionTriggerHaptic );
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/AnalogInput", &m_actionAnalongInput );
 
-	vr::VRInput()->GetActionSetHandle( "/actions/avr", &m_actionsetAvr );
+	vr::VRInput()->GetActionSetHandle( "/actions/avr", &m_actionSetAvr );
 
 	vr::VRInput()->GetActionHandle( "/actions/avr/out/Haptic_Left", &m_rHand[Left].m_actionHaptic );
 	vr::VRInput()->GetInputSourceHandle( "/user/hand/left", &m_rHand[Left].m_source );
@@ -228,6 +228,10 @@ bool VR_Manager::HandleInput()
 	}
 
 	//generic controls
+	vr::VRActiveActionSet_t avrActionSet = {0};
+	avrActionSet.ulActionSet = m_actionSetAvr;
+	vr::VRInput()->UpdateActionState(&avrActionSet, sizeof(avrActionSet), 1);
+
 	vr::VRInputValueHandle_t ulHapticDevice;
 	if (helper->GetDigitalActionRisingEdge(m_actionTriggerHaptic, &ulHapticDevice))
 	{
@@ -281,7 +285,9 @@ bool VR_Manager::HandleInput()
 		if ( vr::VRInput()->GetPoseActionData( m_rHand[eHand].m_actionPose, vr::TrackingUniverseStanding, 0, &poseData, sizeof( poseData ), vr::k_ulInvalidInputValueHandle ) != vr::VRInputError_None
 			|| !poseData.bActive || !poseData.pose.bPoseIsValid )
 		{
+			//std::cout << "VR_Manager.cpp line 284: \n" << "poseData.bActive = " << poseData.bActive <<"\n" << "poseData.pose.bPoseIsValid = " << poseData.pose.bPoseIsValid << "\n" << std::endl;
 			m_rHand[eHand].m_bShowController = false;
+
 		}
 		else
 		{
@@ -292,6 +298,7 @@ bool VR_Manager::HandleInput()
 			if ( vr::VRInput()->GetOriginTrackedDeviceInfo( poseData.activeOrigin, &originInfo, sizeof( originInfo ) ) == vr::VRInputError_None 
 				&& originInfo.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid )
 			{
+
 				std::string sRenderModelName = helper->GetTrackedDeviceString( originInfo.trackedDeviceIndex, vr::Prop_RenderModelName_String );
 				if ( sRenderModelName != m_rHand[eHand].m_sRenderModelName )
 				{
@@ -372,6 +379,9 @@ glm::mat4 VR_Manager::ConvertSteamVRMatrixToGlmMat4(const vr::HmdMatrix34_t &mat
 //-----------------------------------------------------------------------------
 CGLRenderModel* VR_Manager::FindOrLoadRenderModel(const char* pchRenderModelName)
 {
+	//std::string s = pchRenderModelName;
+	//std::cout << s << "*****************************" << std::endl; 
+	
 	CGLRenderModel* pRenderModel = NULL;
 	for(std::vector<CGLRenderModel*>::iterator i = m_vecRenderModels.begin(); i != m_vecRenderModels.end(); i++)
 	{
@@ -399,6 +409,7 @@ CGLRenderModel* VR_Manager::FindOrLoadRenderModel(const char* pchRenderModelName
 		if (error != vr::VRRenderModelError_None)
 		{
 			if(m_bDebugPrint){
+
 			dprintf("Unable to load render model %s - %s\n", pchRenderModelName, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
 			}
 			return NULL; // move on to the next tracked device
@@ -439,6 +450,7 @@ CGLRenderModel* VR_Manager::FindOrLoadRenderModel(const char* pchRenderModelName
 		vr::VRRenderModels()->FreeRenderModel(pModel);
 		vr::VRRenderModels()->FreeTexture(pTexture);
 	}
+
 	return pRenderModel;
 }
 

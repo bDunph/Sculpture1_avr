@@ -1,6 +1,7 @@
 #include "CGLRenderModel.hpp"
 
 #include <cstddef>
+#include <iostream>
 
 //-----------------------------------------------------------------------------
 // Purpose: Create/destroy GL Render Models
@@ -72,7 +73,7 @@ bool CGLRenderModel::BInit( const vr::RenderModel_t & vrModel, const vr::RenderM
 	glBindTexture( GL_TEXTURE_2D, 0 );
 
 	m_unVertexCount = vrModel.unTriangleCount * 3;
-
+	
 	return true;
 }
 
@@ -107,4 +108,5 @@ void CGLRenderModel::Draw()
 	glDrawElements( GL_TRIANGLES, m_unVertexCount, GL_UNSIGNED_SHORT, 0 );
 
 	glBindVertexArray( 0 );
+	//std::cout << "CGRenderModel::Draw() ****************************" << std::endl;
 }
