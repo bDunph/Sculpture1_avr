@@ -77,8 +77,6 @@ Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) :
 	machineLearning.bLoadTrainingData = false;
 }
 
-
-
 //----------------------------------------------------------------------
 // Initialise OpenGL context, companion window, glew and vsync.
 // ---------------------------------------------------------------------	

@@ -80,6 +80,7 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->SetActionManifestPath( Path_MakeAbsolute( "../../src/VR/avr_iml_actions.json", Path_StripFilename( Path_GetExecutablePath() ) ).c_str() );
 #endif
 	
+	//generic actions
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/HideThisController", &m_actionHideThisController);
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/TriggerHaptic", &m_actionTriggerHaptic );
 	vr::VRInput()->GetActionHandle( "/actions/avr/in/AnalogInput", &m_actionAnalongInput );
