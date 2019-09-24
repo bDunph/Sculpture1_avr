@@ -1090,7 +1090,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 			if(!vrm->m_rHand[i].m_bShowController || !vrm->m_rHand[i].m_pRenderModel)
 				continue;
 
-			std::cout << "DRAW CONTROLLER" << std::endl;
+			//std::cout << "DRAW CONTROLLER" << std::endl;
 			const glm::mat4& matDeviceToTracking = vrm->m_rHand[i].m_rmat4Pose;
 			glm::mat4 matMVP = vrm->GetCurrentViewProjectionMatrix(nEye) * matDeviceToTracking;
 			glUniformMatrix4fv(m_nRenderModelMatrixLocation, 1, GL_FALSE, &matMVP[0][0]);

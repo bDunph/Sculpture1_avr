@@ -24,10 +24,12 @@ iamp    init ampdbfs(p4)
 
 kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 
+aSoftAttack	linseg	0,	0.4,	1
+
 ; to simulate the shock between the excitator and the resonator
 krand	random	1,	10	
-ashock  mpulse ampdbfs(-1), krand,	2
-;ashock	lfo	iamp,	2
+;ashock  mpulse ampdbfs(-1), krand,	2
+ashock	lfo	iamp,	2	
 
 ; felt excitator from mode.csd
 ;aexc1	mode	ashock,	80 * (kFreqScale + 1.0),	8
@@ -42,7 +44,7 @@ aexc = (aexc1 + aexc2)/2
 
 ;"Contact" condition : when aexc reaches 0, the excitator looses 
 ;contact with the resonator, and stops "pushing it"
-aexc limit aexc,0,3*iamp 
+;aexc limit aexc,0,3*iamp 
 
 ; Wine Glass with ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
 ares1	mode	aexc,	220 * (kFreqScale + 1),	420 ; A3 fundamental frequency
@@ -56,14 +58,6 @@ ares4	mode	aexc,	1458.6,	520
 ares5	mode	aexc,	2063.6,	540
 
 ares = (ares1+ares2+ares3+ares4+ares5)/5
-
-;envelope to shape output
-;iatt = 0.8
-;idec = 0.5
-;isus = 0.01
-;irel = 0.7
-;
-;aenv	adsr	iatt,	idec,	isus,	irel
 
 gaOut1 = aexc + ares 
 
