@@ -91,12 +91,21 @@ private:
 	std::vector<CGLRenderModel*> m_vecRenderModels;
 	
 #ifdef __APPLE__
-	VRActionHandle_t m_actionRotateStructure = vr::k_ulInvalidActionHandle;
 	VRActionHandle_t m_actionHideThisController = vr::k_ulInvalidActionHandle;
 	VRActionHandle_t m_actionTriggerHaptic = vr::k_ulInvalidActionHandle;
 	VRActionHandle_t m_actionAnalongInput = vr::k_ulInvalidActionHandle;
 	
-	VRActionSetHandle_t m_actionsetAvr = vr::k_ulInvalidActionSetHandle;
+	VRActionSetHandle_t m_actionSetAvr = vr::k_ulInvalidActionSetHandle;
+
+	//machine learning actions
+	VRActionHandle_t m_actionRandomParameters = vr::k_ulInvalidActionHandle;
+	VRActionHandle_t m_actionRecordTrainingExample = vr::k_ulInvalidActionHandle;
+	VRActionHandle_t m_actionTrainModel = vr::k_ulInvalidActionHandle;
+	VRActionHandle_t m_actionRunModel = vr::k_ulInvalidActionHandle;
+	VRActionHandle_t m_actionSaveModel = vr::k_ulInvalidActionHandle;
+	VRActionHandle_t m_actionLoadModel = vr::k_ulInvalidActionHandle;
+
+	VRActionSetHandle_t m_actionSetMachineLearning = vr::k_ulInvalidActionSetHandle;
 #elif _WIN32
 	//generic actions
 	vr::VRActionHandle_t m_actionHideThisController = vr::k_ulInvalidActionHandle;

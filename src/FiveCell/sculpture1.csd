@@ -17,19 +17,16 @@ nchnls = 2
 ; Set 0dbfs to 1
 0dbfs = 1
 
-instr 1; Modal Synthesis Instrument 
+instr 1; Modal Synthesis Percussive Instrument 
 
 idur 	init p3
 iamp    init ampdbfs(p4)
 
 kFreqScale chnget "randFreq" ; random frequency scale value sent from application
 
-aSoftAttack	linseg	0,	0.4,	1
-
 ; to simulate the shock between the excitator and the resonator
 krand	random	1,	10	
-;ashock  mpulse ampdbfs(-1), krand,	2
-ashock	lfo	iamp,	2	
+ashock  mpulse ampdbfs(-1), krand,	2
 
 ; felt excitator from mode.csd
 ;aexc1	mode	ashock,	80 * (kFreqScale + 1.0),	8
@@ -44,10 +41,11 @@ aexc = (aexc1 + aexc2)/2
 
 ;"Contact" condition : when aexc reaches 0, the excitator looses 
 ;contact with the resonator, and stops "pushing it"
-;aexc limit aexc,0,3*iamp 
+aexc limit	aexc,	0,	3*iamp 
 
 ; Wine Glass with ratios from http://www.csounds.com/manual/html/MiscModalFreq.html
-ares1	mode	aexc,	220 * (kFreqScale + 1),	420 ; A3 fundamental frequency
+;ares1	mode	aexc,	220 * (kFreqScale + 1),	420 ; A3 fundamental frequency
+ares1	mode	aexc,	220,	420 ; A3 fundamental frequency
 
 ares2	mode	aexc,	510.4,	480
 
@@ -63,6 +61,37 @@ gaOut1 = aexc + ares
 
 kRms	rms	gaOut1
 	chnset	kRms,	"rmsOut"
+endin
+
+;*************************************************************************************
+instr 2	; Physical Bowed String Instrument
+;*************************************************************************************
+kpres = 4
+krat = 0.046
+kvibf = 6.12723
+
+kvib	linseg	0,	0.5,	0,	1,	1,	2.5,	1
+kvamp = kvib * 0.01
+
+asig	wgbow	0.7,	55,	kpres,	krat,	kvibf,	kvamp
+
+	outs	asig,	asig
+
+endin
+			
+;*************************************************************************************
+instr 3 ; Physical Bowed Bar Instrument
+;*************************************************************************************
+
+kEnv	adsr	1,	0.2,	0.7,	1
+
+kp = 0.8 
+
+asig	wgbowedbar	ampdbfs(-3),	133,	0.7,	kp,	0.969
+asig = asig * kEnv
+
+     outs asig, asig
+
 endin
 
 instr 6 ; Hrtf Instrument
@@ -99,6 +128,14 @@ endin
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
 i1	3	180	-2		
+
+i2	2	2
+i2	+	2
+i2	+	2	
+
+i3	4	10
+i3	+	5
+i3	+	2
 
 i6	2	180	
 
