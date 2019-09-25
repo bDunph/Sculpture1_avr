@@ -59,6 +59,7 @@ ares5	mode	aexc,	2063.6,	540
 ares = (ares1+ares2+ares3+ares4+ares5)/5
 
 gaOut1 = aexc + ares 
+	outs	gaOut1,	gaOut1
 
 kRms	rms	gaOut1
 	chnset	kRms,	"rmsOut"
@@ -84,12 +85,12 @@ endin
 instr 3 ; Physical Bowed Bar Instrument
 ;*************************************************************************************
 
-kEnv	adsr	0.45,	0.08,	0.9,	0.6
+kEnv	adsr	0.45,	0.8,	0.05,	0.6
 
 kp = 1.9 
 
 asig	wgbowedbar	ampdbfs(-1),	133,	0.7,	kp,	0.969
-asig = asig * kEnv
+asig = (asig + asig + asig + asig + asig + asig) * kEnv
 
      outs asig, asig
 
@@ -172,7 +173,22 @@ aWGOut	dcblock2	aWGOut
 endin
 
 ;**************************************************************************************		
-instr 6 ; Hrtf Instrument
+instr 6 ; Crunch Instrument
+;**************************************************************************************		
+
+idmp = p4
+
+a1	crunch		0.8,	0.04,	56,	idmp	
+a2	crunch		0.8,	0.1,	7,	idmp
+
+aOutR,	aOutL	reverbsc	a1,	a2,	0.9,	12000	
+
+	outs		aOutL,	aOutR
+
+endin
+
+;**************************************************************************************		
+instr 7 ; Hrtf Instrument
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
@@ -192,7 +208,7 @@ outs	aL,	aR
 endin
 
 ;********************************************************************
-instr 7 ;test tone
+instr 8 ;test tone
 ;********************************************************************
 
 kamp = ampdbfs(-3) 
@@ -207,27 +223,31 @@ endin
 <CsScore>
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-;i1	2	10	-2		
+i1	2	10	-2		
 
-;i2	2	2
-;i2	+	2
-;i2	+	2	
+i2	14	2
+i.	+	2
+i.	+	2	
 
-i3	2	10
-i3	+	5
-i3	+	2
+i3	20	5	
+i.	+	5
+i.	+	5
 
-;i4	30	10
-;i4	+	5
-;i4	+	2
-;
-;i5	56	20
-;i5	+	10
-;i5	+	5
+i4	37	10
+i.	+	5
+i.	+	2
 
-;i6	2	180	
+i5	56	20
+i.	+	10
+i.	+	5
 
-;i7	0	240
+i6	92	5	0.7
+i.	+	5	0.85
+i.	+	5	0.94
+
+;i7	2	180	
+
+;i8	0	240
 
 </CsScore>
 <
