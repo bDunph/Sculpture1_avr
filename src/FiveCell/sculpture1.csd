@@ -17,8 +17,9 @@ nchnls = 2
 ; Set 0dbfs to 1
 0dbfs = 1
 
+;*************************************************************************************
 instr 1; Modal Synthesis Percussive Instrument 
-
+;*************************************************************************************
 idur 	init p3
 iamp    init ampdbfs(p4)
 
@@ -83,19 +84,96 @@ endin
 instr 3 ; Physical Bowed Bar Instrument
 ;*************************************************************************************
 
-kEnv	adsr	1,	0.2,	0.7,	1
+kEnv	adsr	0.45,	0.08,	0.9,	0.6
 
-kp = 0.8 
+kp = 1.9 
 
-asig	wgbowedbar	ampdbfs(-3),	133,	0.7,	kp,	0.969
+asig	wgbowedbar	ampdbfs(-1),	133,	0.7,	kp,	0.969
 asig = asig * kEnv
 
      outs asig, asig
 
 endin
 
-instr 6 ; Hrtf Instrument
+;*************************************************************************************
+instr 4 ; Waveguide + Mode Instrument - Noise Filter
+;*************************************************************************************
 
+;envelope
+kEnv	adsr	0.3,	0.1,	0.8,	0.6
+
+;noise
+kbeta	line	-0.9999,	p3,	0.9999
+asig	noise	ampdbfs(-3),	0.3999	
+asig = asig * kEnv
+
+;waveguide model1
+kfreq		init	200
+kcutoff		init	300
+kfeedback	init	0.2
+
+awg1	wguide1	asig,	kfreq,	kcutoff,	kfeedback
+
+;waveguide model2
+kfreq2		linseg	800,	p3/2,	100,	p3/2,	300
+kcutoff2	linseg	500,	p3/2,	700,	p3/2,	200
+kfeedback2	linseg	0.5,	p3/2,	0.8,	p3/2,	0.1
+
+awg2	wguide1	awg1,	kfreq2,	kcutoff2,	kfeedback2	
+
+;tone filter
+khp	linseg	700,	p3/4,	350,	p3/4,	400,	p3/4,	300,	p3/4,	200
+
+aToneOut	tone	awg2,	khp
+
+;mode bank
+; felt excitator from mode.csd
+iamp	init	ampdbfs(-3)
+
+kModeFreq	linseg	80,	p3/2,	99,	p3/2,	89
+kQFactor	linseg	8,	p3/2,	21,	p3/2,	18
+
+aexc1	mode	aToneOut,	kModeFreq,	kQFactor	
+aexc1 = aexc1 * iamp 
+
+kModeFreq2	linseg	188,	p3/2,	159,	p3/2,	201
+kQFactor2	linseg	3,	p3/2,	15,	p3/2,	5
+
+aexc2	mode	aToneOut,	kModeFreq2,	kQFactor2
+aexc2 = aexc2 * iamp 
+
+aexc = (aexc1 + aexc2)/2
+
+	outs	aexc,	aexc
+
+endin
+
+;**************************************************************************************		
+instr 5 ; Beaten Plate 
+;**************************************************************************************		
+
+kFreq	linseg	50,	p3,	20
+kPhase	phasor	5
+kAmp = 0.4 * kPhase
+
+aSig		lfo	kAmp,	kFreq,	1
+aFreq1		linseg	900,	p3/2,	870,	p3/2,	1100
+aFreq2		linseg	500,	p3/3,	340,	p3/3,	624,	p3/3,	300
+kCutOff1 = 3000
+kCutOff2 = 1500
+kFeedback1 = 0.35
+kFeedback2 = 0.15
+
+aWGOut	wguide2	aSig,	aFreq1,	aFreq2,	kCutOff1,	kCutOff2,	kFeedback1,	kFeedback2
+aWGOut	dcblock2	aWGOut
+
+	outs	aWGOut,	aWGOut
+
+endin
+
+;**************************************************************************************		
+instr 6 ; Hrtf Instrument
+;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
 kAzimuthVal chnget "azimuth" 
@@ -113,7 +191,9 @@ aR = aRightSig
 outs	aL,	aR
 endin
 
+;********************************************************************
 instr 7 ;test tone
+;********************************************************************
 
 kamp = ampdbfs(-3) 
 kcps = 440
@@ -127,17 +207,25 @@ endin
 <CsScore>
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-i1	3	180	-2		
+;i1	2	10	-2		
 
-i2	2	2
-i2	+	2
-i2	+	2	
+;i2	2	2
+;i2	+	2
+;i2	+	2	
 
-i3	4	10
+i3	2	10
 i3	+	5
 i3	+	2
 
-i6	2	180	
+;i4	30	10
+;i4	+	5
+;i4	+	2
+;
+;i5	56	20
+;i5	+	10
+;i5	+	5
+
+;i6	2	180	
 
 ;i7	0	240
 
