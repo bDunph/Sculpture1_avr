@@ -90,9 +90,9 @@ kEnv	adsr	0.45,	0.8,	0.05,	0.6
 kp = 1.9 
 
 asig	wgbowedbar	ampdbfs(-1),	133,	0.7,	kp,	0.969
-asig = (asig + asig + asig + asig + asig + asig) * kEnv
+gasig = (asig + asig + asig + asig + asig + asig) * kEnv
 
-     outs asig, asig
+     ;outs asig, asig
 
 endin
 
@@ -188,7 +188,182 @@ aOutR,	aOutL	reverbsc	a1,	a2,	0.9,	12000
 endin
 
 ;**************************************************************************************		
-instr 7 ; Hrtf Instrument
+instr 7 ; Bowed String Resonator
+;**************************************************************************************		
+
+kRandPressure	random	1.0,	1.3
+kRandPos	random	0.025,	0.035
+
+kAmpBow = ampdbfs(-1)
+kFreqBow = 50
+kPresBow = kRandPressure
+kRatBow = kRandPos
+kVibfBow = 6
+kVAmpBow = ampdbfs(-3)
+
+aBow	wgbow	kAmpBow,	kFreqBow,	kPresBow,	kRatBow,	kVibfBow,	kVAmpBow	
+
+;Tibetan Bowl Resonances
+kfr1 = 221 
+kfr2 = 614
+kfr3 = 1145
+kfr4 = 1804
+kfr5 = 2577
+kfr6 = 3456
+kfr7 = 4419
+
+ifdbgain = 0.90 
+
+;astr1	streson	aBow,	kfr1,	ifdbgain
+;aSum1	sum	aBow,	astr1
+;astr2	streson	aSum1,	kfr2,	ifdbgain
+;aSum2	sum	aBow,	astr2
+;astr3	streson	aSum2,	kfr3,	ifdbgain
+;aSum3	sum	aBow,	astr3
+;astr4	streson	aSum3,	kfr4,	ifdbgain
+;aSum4	sum	aBow,	astr4
+;astr5	streson	aSum4,	kfr5,	ifdbgain
+;aSum5	sum	aBow,	astr5
+;astr6	streson	aSum5,	kfr6,	ifdbgain
+;aSum6	sum	aBow,	astr6
+;astr7	streson	aSum6,	kfr7,	ifdbgain
+
+;astr1	streson	aBow,	kfr1,	ifdbgain
+;astr2	streson	aBow,	kfr2,	ifdbgain + 0.01
+;astr3	streson	aBow,	kfr3,	ifdbgain + 0.03
+;astr4	streson	aBow,	kfr4,	ifdbgain + 0.06
+;astr5	streson	aBow,	kfr5,	ifdbgain - 0.02
+;astr6	streson	aBow,	kfr6,	ifdbgain - 0.04
+;astr7	streson	aBow,	kfr7,	ifdbgain + 0.02
+
+astr1	streson	aBow,	kfr1,	ifdbgain
+astr2	streson	astr1,	kfr2,	ifdbgain
+astr3	streson	astr2,	kfr3,	ifdbgain
+astr4	streson	astr3,	kfr4,	ifdbgain
+astr5	streson	astr4,	kfr5,	ifdbgain
+astr6	streson	astr5,	kfr6,	ifdbgain
+astr7	streson	astr6,	kfr7,	ifdbgain
+
+asig1	clip	astr1,	0,	1
+asig2	clip	astr2,	0,	1
+asig3	clip	astr3,	0,	1
+asig4	clip	astr4,	0,	1
+asig5	clip	astr5,	0,	1
+asig6	clip	astr6,	0,	1
+asig7	clip	astr7,	0,	1
+
+gaOut	sum	asig1,	asig2,	asig3,	asig4,	asig5,	asig6,	asig7
+	;outs	aOut,	aOut
+
+endin
+
+;****************************************************************************************
+instr 8 ; FFT Instrument
+;****************************************************************************************
+
+idur = p3
+ilock = 1
+ipitch = 10 
+itimescale = 0.15
+iamp = ampdbfs(-3)
+
+atime	line	0,	idur,	idur * itimescale
+asig	mincer	atime,	iamp,	ipitch,	1,	ilock
+
+	outs	asig,	asig
+
+endin
+
+;****************************************************************************************
+instr 9 ; Formant Instrument
+;****************************************************************************************
+
+; Combine five formants together to create 
+; a transformation from an alto-"a" sound
+; to an alto-"i" sound.
+; Values common to all of the formants.
+kfund init 261.659
+koct init 0
+kris init 0.003
+kdur init 0.02
+kdec init 0.007
+iolaps = 100
+ifna = 2
+ifnb = 3
+itotdur = p3
+
+; First formant.
+k1amp = ampdb(0)
+k1form line 600, p3, 250
+k1band line 60, p3, 60
+
+; Second formant.
+k2amp line ampdb(-7), p3, ampdb(-30)
+k2form line 1040, p3, 1750
+k2band line 70, p3, 90
+
+; Third formant.
+k3amp line ampdb(-9), p3, ampdb(-16)
+k3form line 2250, p3, 2600
+k3band line 110, p3, 100
+
+; Fourth formant.
+k4amp  line ampdb(-9), p3, ampdb(-22)
+k4form line 2450, p3, 3050
+k4band init 120
+
+; Fifth formant.
+k5amp line ampdb(-20), p3, ampdb(-28)
+k5form line 2750, p3, 3340 
+k5band line 130, p3, 120
+
+a1 fof k1amp, kfund, k1form, koct, k1band, kris, \
+       kdur, kdec, iolaps, ifna, ifnb, itotdur
+a2 fof k2amp, kfund, k2form, koct, k2band, kris, \
+       kdur, kdec, iolaps, ifna, ifnb, itotdur
+a3 fof k3amp, kfund, k3form, koct, k3band, kris, \
+       kdur, kdec, iolaps, ifna, ifnb, itotdur
+a4 fof k4amp, kfund, k4form, koct, k4band, kris, \
+       kdur, kdec, iolaps, ifna, ifnb, itotdur
+a5 fof k5amp, kfund, k5form, koct, k5band, kris, \
+       kdur, kdec, iolaps, ifna, ifnb, itotdur
+
+; Combine all of the formants together
+asig sum a1,	a2,	a3,	a4,	a5
+     outs asig, asig
+
+endin
+
+;**************************************************************************************		
+instr 10 ; Spectral Instrument
+;**************************************************************************************		
+
+ain  diskin2 "24cellRow_mono.wav", 1
+fs1,fsi2 pvsifd ain,2048,512,1		; ifd analysis
+fst  partials fs1,fsi2,.03,1,10,100	; partial tracking
+aout resyn fst, 1, 5.5, 10, 2		; resynthesis (up a 5th)
+     outs aout, aout
+
+endin
+
+;**************************************************************************************		
+instr 11 ; Spectral Warping Instrument
+;**************************************************************************************		
+
+;kscal = p4
+kscal	linseg	1,	p3/3,	2.3,	p3/3,	2.1,	p3/3,	3
+kshift	linseg	0,	p3/3,	0.9,	p3/3,	-0.3,	p3/3,	0
+	
+;asig  soundin "24cellRow_mono.wav"			; get the signal in
+fsig  pvsanal gasig, 1024, 256, 1024, 1	; analyse it
+ftps  pvswarp fsig, kscal, kshift		; warp it
+atps  pvsynth ftps			; synthesise it                      
+      outs atps, atps
+
+endin
+
+;**************************************************************************************
+instr 12 ; Hrtf Instrument
 ;**************************************************************************************
 kPortTime linseg 0.0, 0.001, 0.05 
 
@@ -208,7 +383,7 @@ outs	aL,	aR
 endin
 
 ;********************************************************************
-instr 8 ;test tone
+instr 13 ;test tone
 ;********************************************************************
 
 kamp = ampdbfs(-3) 
@@ -221,33 +396,73 @@ endin
 
 </CsInstruments>
 <CsScore>
+
+;********************************************************************
+; f tables
+;********************************************************************
+; read file
+f1	0	0	1	"24cellRow_mono.wav"	0	0	0
+
+; sine wave
+f2	0 	4096 	10 	1
+
+; sigmoid wave
+f3 	0 	1024 	19 	0.5 	0.5 	270 	0.5
+
+;********************************************************************
+; score events
+;********************************************************************
+
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-i1	2	10	-2		
+;i1	2	10	-2		
+;
+;i2	14	2
+;i.	+	2
+;i.	+	2	
 
-i2	14	2
-i.	+	2
-i.	+	2	
-
-i3	20	5	
+i3	2	5	
 i.	+	5
 i.	+	5
-
-i4	37	10
-i.	+	5
-i.	+	2
-
-i5	56	20
-i.	+	10
 i.	+	5
 
-i6	92	5	0.7
-i.	+	5	0.85
-i.	+	5	0.94
+;i4	37	10
+;i.	+	5
+;i.	+	2
+;
+;i5	56	20
+;i.	+	10
+;i.	+	5
+;
+;i6	92	5	0.7
+;i.	+	5	0.85
+;i.	+	5	0.94
 
-;i7	2	180	
+;i7	2	5	
+;i.	+	5
+;i.	+	5
+;i.	+	5
 
-;i8	0	240
+;i8	130	4
+;i.	+	4
+;i.	+	4	
+;
+;i9	144	6
+;i.	+	6
+;i.	+	6
+;
+;i10	2	3
+;i.	+	5
+;i.	+	9
+
+i11 	2 	5 	1
+i. 	+ 	5 	1.5
+i. 	+ 	5 	3
+i. 	+ 	5 	.25
+
+;i12	2	180	
+
+;i13	0	240
 
 </CsScore>
 <
