@@ -90,9 +90,9 @@ kEnv	adsr	0.45,	0.8,	0.05,	0.6
 kp = 1.9 
 
 asig	wgbowedbar	ampdbfs(-1),	133,	0.7,	kp,	0.969
-gasig = (asig + asig + asig + asig + asig + asig) * kEnv
+asig = (asig + asig + asig + asig + asig + asig) * kEnv
 
-     ;outs asig, asig
+     outs asig, asig
 
 endin
 
@@ -252,8 +252,8 @@ asig5	clip	astr5,	0,	1
 asig6	clip	astr6,	0,	1
 asig7	clip	astr7,	0,	1
 
-gaOut	sum	asig1,	asig2,	asig3,	asig4,	asig5,	asig6,	asig7
-	;outs	aOut,	aOut
+aOut	sum	asig1,	asig2,	asig3,	asig4,	asig5,	asig6,	asig7
+	outs	aOut,	aOut
 
 endin
 
@@ -354,8 +354,8 @@ instr 11 ; Spectral Warping Instrument
 kscal	linseg	1,	p3/3,	2.3,	p3/3,	2.1,	p3/3,	3
 kshift	linseg	0,	p3/3,	0.9,	p3/3,	-0.3,	p3/3,	0
 	
-;asig  soundin "24cellRow_mono.wav"			; get the signal in
-fsig  pvsanal gasig, 1024, 256, 1024, 1	; analyse it
+asig  soundin "24cellRow_mono.wav"			; get the signal in
+fsig  pvsanal asig, 1024, 256, 1024, 1	; analyse it
 ftps  pvswarp fsig, kscal, kshift		; warp it
 atps  pvsynth ftps			; synthesise it                      
       outs atps, atps
@@ -415,50 +415,50 @@ f3 	0 	1024 	19 	0.5 	0.5 	270 	0.5
 
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-;i1	2	10	-2		
-;
+i1	2	100000	-2		
+
 ;i2	14	2
 ;i.	+	2
 ;i.	+	2	
-
-i3	2	5	
-i.	+	5
-i.	+	5
-i.	+	5
-
-;i4	37	10
+;
+;i3	21	5	
+;i.	+	5
+;i.	+	5
+;i.	+	5
+;
+;i4	42	10
 ;i.	+	5
 ;i.	+	2
 ;
-;i5	56	20
+;i5	60	20
 ;i.	+	10
 ;i.	+	5
 ;
-;i6	92	5	0.7
+;i6	96	5	0.7
 ;i.	+	5	0.85
 ;i.	+	5	0.94
-
-;i7	2	5	
+;
+;i7	112	5	
 ;i.	+	5
 ;i.	+	5
 ;i.	+	5
-
-;i8	130	4
+;
+;i8	133	4
 ;i.	+	4
 ;i.	+	4	
 ;
-;i9	144	6
+;i9	146	6
 ;i.	+	6
 ;i.	+	6
 ;
-;i10	2	3
+;i10	165	3
 ;i.	+	5
 ;i.	+	9
-
-i11 	2 	5 	1
-i. 	+ 	5 	1.5
-i. 	+ 	5 	3
-i. 	+ 	5 	.25
+;
+;i11 	183 	5 	1
+;i. 	+ 	5 	1.5
+;i. 	+ 	5 	3
+;i. 	+ 	5 	.25
 
 ;i12	2	180	
 

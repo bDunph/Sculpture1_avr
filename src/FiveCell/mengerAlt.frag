@@ -4,6 +4,7 @@ const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
+const float gamma = 2.2;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
@@ -12,7 +13,7 @@ uniform float rmsModVal;
 in vec4 nearPos;
 in vec4 farPos;
 
-out vec4 fragColor; 
+out vec4 fragColorOut; 
 
 ///**
 // * Constructive solid geometry intersection operation on SDF-calculated distances.
@@ -74,7 +75,7 @@ float crossSDF(vec3 p){
 
 float sceneSDF(vec3 samplePoint) {    
     float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
-    float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
+    float cubeCross = crossSDF(samplePoint * 1.5) / 1.5;    
     cube = differenceSDF(cube, cubeCross);
 
     float iterativeScalar = 1.0;
@@ -82,6 +83,7 @@ float sceneSDF(vec3 samplePoint) {
     for(int i = 0; i <4; i++){
      	
         vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
+        //vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
         iterativeScalar *= 3.0;
         vec3 r = abs(1.0 - 4.0 * abs(a));
         float cubeCross = crossSDF(r) / iterativeScalar;    
@@ -101,13 +103,13 @@ float sceneSDF(vec3 samplePoint) {
 // * start: the starting distance away from the eye
 // * end: the max distance away from the ey to march before giving up
 // */
-float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
+float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, float uniformScaleValue) {
     float depth = start;
     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
         //float dist = sceneSDF((eye + depth * marchingDirection) / (randSize + 1.0)) * (randSize + 1.0);
 	vec3 pointPos = eye + depth * marchingDirection;
-	//vec3 translatedPoint = pointPos + vec3(0.0, -1.5, 0.0);
-        float dist = sceneSDF((pointPos) / (randSize + 1.0)) * (randSize + 1.0);
+	vec3 translatedPoint = pointPos + vec3(0.0, -20.0, 0.0);
+        float dist = sceneSDF(translatedPoint / uniformScaleValue) * uniformScaleValue;
         if (dist < EPSILON) {
 		return depth;
         }
@@ -123,11 +125,11 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 // * Using the gradient of the SDF, estimate the normal on the surface at point p.
 // */
 vec3 estimateNormal(vec3 p) {
-    return normalize(vec3(
-        sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
-        sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
-        sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
-    ));
+    	return normalize(vec3(
+    	    sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
+    	    sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
+    	    sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
+    	));
 }
 
 ///**
@@ -182,29 +184,34 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
 // *
 // * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 // */
-vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
-    const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
-    //const vec3 ambientLight = 0.5 * vec3(0.5, 0.125, 0.05);
-    vec3 color = ambientLight * k_a;
+vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, float uniformScaleValue) {
+
+	vec3 scaleVec =  vec3(uniformScaleValue, uniformScaleValue, uniformScaleValue);
+
+    	const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
+	vec3 color = ambientLight * k_a;
     
-    vec3 light1Pos = vec3(4.0,
-                          2.0,
-                          4.0);
-    vec3 light1Intensity = vec3(0.4, 0.4, 0.4);
+	vec3 light1Pos = vec3(-4.0, 2.0, -4.0);
+	light1Pos += scaleVec;
+	vec3 light1Intensity = vec3(0.8, 0.8, 0.8);
     
-    color += phongContribForLight(k_d, k_s, alpha, p, eye,
-                                  light1Pos,
-                                  light1Intensity);
+	color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Pos, light1Intensity);
     
-    vec3 light2Pos = vec3(2.0 * sin(0.37),
-                          2.0 * cos(0.37),
-                          2.0);
-    vec3 light2Intensity = vec3(0.4, 0.4, 0.4);
+	//vec3 light2Pos = vec3(4.0, 2.0, 4.0);
+	//light2Pos += scaleVec;
+	//vec3 light2Intensity = vec3(0.9, 0.9, 0.9);
     
-    color += phongContribForLight(k_d, k_s, alpha, p, eye,
-                                  light2Pos,
-                                  light2Intensity);    
-    return color;
+	//color += phongContribForLight(k_d, k_s, alpha, p, eye, light2Pos, light2Intensity);    
+
+	//vec3 light3Pos = vec3(-5.0, 3.0, -4.0);
+
+    	//vec3 light3Intensity = vec3(0.4, 0.4, 0.4);
+    
+    	//color += phongContribForLight(k_d, k_s, alpha, p, eye,
+        //                          light3Pos,
+        //                          light3Intensity);    
+
+	return color;
 }
 
 void main()
@@ -217,11 +224,12 @@ void main()
 	vec3 rayDir = rayEnd - rayOrigin;
 	rayDir = normalize(rayDir);	
 
-    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST);
+	float uniformScaleVal = 200.0;
+    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal);
     
     	if (dist > MAX_DIST - EPSILON) {
         	// Didn't hit anything
-        	fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        	fragColorOut = vec4(0.0, 0.0, 0.0, 0.0);
 			return;
     	}
     
@@ -229,15 +237,18 @@ void main()
     	vec3 p = rayOrigin + dist * rayDir;
 
     	// Use the surface normal as the ambient color of the material
-    	//vec3 K_a = (estimateNormal(p) + vec3(1.0)) / 2.0;
-    	vec3 K_a = vec3(0.5, 0.125, 0.05) / 2.0;
+    	vec3 K_a_orig = (estimateNormal(p) + vec3(1.0)) / 2.0;
+    	vec3 K_a_mine = vec3(0.223, 0.095, 0.05) / 2.0;
+	vec3 K_a = K_a_mine;
     	vec3 K_d = K_a;
     	vec3 K_s = vec3(1.0, 1.0, 1.0);
     	float shininess = 10.0;
     
-    	vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin);
+    	vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin, uniformScaleVal);
     
-    	fragColor = vec4(color, 1.0);
+	//gamma correction
+	vec3 fragColor = pow(color, vec3(1.0 / gamma));
+    	fragColorOut = vec4(fragColor, 1.0);
 
 	vec4 pClipSpace =  MVEPMat * vec4(p, 1.0);
 	vec3 pNdc = vec3(pClipSpace.x / pClipSpace.w, pClipSpace.y / pClipSpace.w, pClipSpace.z / pClipSpace.w);

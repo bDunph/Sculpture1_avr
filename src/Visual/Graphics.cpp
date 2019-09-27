@@ -201,7 +201,7 @@ bool Graphics::BInitGL(bool fullscreen){
 	//create matrices for devmode
 	if(m_bDevMode){
 		m_fFov = 45.0f;
-		m_matDevProjMatrix = glm::perspective(m_fFov, (float)m_nCompanionWindowWidth/ (float)m_nCompanionWindowHeight, 0.1f, 1000.0f);
+		m_matDevProjMatrix = glm::perspective(m_fFov, (float)m_nCompanionWindowWidth/ (float)m_nCompanionWindowHeight, 0.1f, 10000.0f);
 		
 		//variables for view matrix
 		m_vec3DevCamPos = glm::vec3(0.0f, 0.0f, 3.0f);	

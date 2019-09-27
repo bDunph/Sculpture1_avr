@@ -106,7 +106,7 @@ bool VR_Manager::BInit(){
 	vr::VRInput()->GetActionSetHandle("/actions/machineLearning", &m_actionSetMachineLearning);
 
 	m_fNearClip = 0.1f;
-	m_fFarClip = 30.0f;
+	m_fFarClip = 10000.0f;
 
 	return true;
 }
