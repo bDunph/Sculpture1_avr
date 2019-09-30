@@ -20,7 +20,7 @@ class Graphics{
 public:
 
 	Graphics(std::unique_ptr<ExecutionFlags>& flagPtr);
-	bool BInitGL(bool fullscreen = true);
+	bool BInitGL(bool fullscreen = false);
 	bool BCreateDefaultShaders();
 	GLuint BCreateSceneShaders(std::string shaderName);
 	GLuint CompileGLShader( const char *pchShaderName, const char *pchVertexShader, const char *pchFragmentShader );
@@ -163,6 +163,7 @@ private:
 
 	//dev mode
 	glm::mat4 m_matDevProjMatrix;
+	glm::mat4 m_matDevProjMatrix_InfiniteFarPlane;
 	glm::mat4 m_matDevViewMatrix;
 	glm::vec3 m_vec3DevCamPos;
 	glm::vec3 m_vec3DevCamUp;

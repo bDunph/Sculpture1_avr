@@ -43,8 +43,8 @@ public:
 	bool BSetupRaymarchQuad(GLuint shaderProg);
 	//float cubeSDF(glm::vec3 samplePoint);
 	//float distanceToObject(glm::vec3 origin, glm::vec3 direction);
-	void update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning);
-	void draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg);
+	void update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning, glm::mat4 infProjMat);
+	void draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg, glm::mat4 infProjMat);
 	void exit();
 
 private:
@@ -69,6 +69,9 @@ private:
 	GLint ground_lightPosLoc;
 	GLint ground_light2PosLoc;
 	GLint ground_cameraPosLoc;
+	GLint ground_MVEPLoc;
+	GLint ground_InvMVEPLoc;
+	GLint ground_InfProjLoc;
 	
 	GLuint groundTexture;
 

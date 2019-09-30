@@ -5,6 +5,7 @@ const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const float gamma = 2.2;
+const float REFLECT_AMOUNT = 0.02;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
@@ -108,7 +109,7 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
     for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
         //float dist = sceneSDF((eye + depth * marchingDirection) / (randSize + 1.0)) * (randSize + 1.0);
 	vec3 pointPos = eye + depth * marchingDirection;
-	vec3 translatedPoint = pointPos + vec3(0.0, -20.0, 0.0);
+	vec3 translatedPoint = pointPos + vec3(0.0, 0.0, 0.0);
         float dist = sceneSDF(translatedPoint / uniformScaleValue) * uniformScaleValue;
         if (dist < EPSILON) {
 		return depth;
@@ -186,13 +187,13 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
 // */
 vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, float uniformScaleValue) {
 
-	vec3 scaleVec =  vec3(uniformScaleValue, uniformScaleValue, uniformScaleValue);
+	//vec3 scaleVec =  vec3(uniformScaleValue, uniformScaleValue, uniformScaleValue);
 
     	const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
 	vec3 color = ambientLight * k_a;
     
 	vec3 light1Pos = vec3(-4.0, 2.0, -4.0);
-	light1Pos += scaleVec;
+	//light1Pos += scaleVec;
 	vec3 light1Intensity = vec3(0.8, 0.8, 0.8);
     
 	color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Pos, light1Intensity);
@@ -224,7 +225,7 @@ void main()
 	vec3 rayDir = rayEnd - rayOrigin;
 	rayDir = normalize(rayDir);	
 
-	float uniformScaleVal = 200.0;
+	float uniformScaleVal = 1.0;
     	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal);
     
     	if (dist > MAX_DIST - EPSILON) {
@@ -237,8 +238,8 @@ void main()
     	vec3 p = rayOrigin + dist * rayDir;
 
     	// Use the surface normal as the ambient color of the material
-    	vec3 K_a_orig = (estimateNormal(p) + vec3(1.0)) / 2.0;
-    	vec3 K_a_mine = vec3(0.223, 0.095, 0.05) / 2.0;
+    	//vec3 K_a_orig = (estimateNormal(p) + vec3(1.0)) / 2.0;
+    	vec3 K_a_mine = vec3(0.583, 0.095, 0.05);
 	vec3 K_a = K_a_mine;
     	vec3 K_d = K_a;
     	vec3 K_s = vec3(1.0, 1.0, 1.0);

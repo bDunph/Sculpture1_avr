@@ -1,4 +1,3 @@
-#include <iostream>
 #include <vector>
 
 #ifdef _WIN32 
@@ -34,7 +33,7 @@ glm::vec3 m_vec3DevCamFront;
 Graphics::Graphics(std::unique_ptr<ExecutionFlags>& flagPtr) : 
 	m_pGLContext(nullptr),
 	m_nCompanionWindowWidth(640),
-	m_nCompanionWindowHeight(320),
+	m_nCompanionWindowHeight(640),
 	m_iTrackedControllerCount(0),
 	m_iTrackedControllerCount_Last(-1),
 	m_iValidPoseCount_Last(-1),
@@ -202,9 +201,18 @@ bool Graphics::BInitGL(bool fullscreen){
 	if(m_bDevMode){
 		m_fFov = 45.0f;
 		m_matDevProjMatrix = glm::perspective(m_fFov, (float)m_nCompanionWindowWidth/ (float)m_nCompanionWindowHeight, 0.1f, 10000.0f);
+		//m_matDevProjMatrix_InfiniteFarPlane = glm::perspective(m_fFov, (float)m_nCompanionWindowWidth / (float)m_nCompanionWindowHeight, 0.1f, 0.0f);
+		float r = m_nCompanionWindowWidth * 0.5f;
+		float t = m_nCompanionWindowHeight * 0.5f;
+		m_matDevProjMatrix_InfiniteFarPlane = glm::mat4(
+			0.1f/r, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.1f/t, 0.0f, 0.0f,
+			0.0f, 0.0f, -1.0f, -2.0f*0.1f,
+			0.0f, 0.0f, -1.0f, 0.0f
+		);
 		
 		//variables for view matrix
-		m_vec3DevCamPos = glm::vec3(0.0f, 0.0f, 3.0f);	
+		m_vec3DevCamPos = glm::vec3(0.0f, 2.0f, -3.0f);	
 		m_vec3DevCamUp = glm::vec3(0.0f, 1.0f, 0.0f);
 		m_vec3DevCamFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
@@ -704,7 +712,7 @@ void Graphics::DevProcessInput(GLFWwindow *window){
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
 	
 	//keep camera movement on the XZ plane
-	if(m_vec3DevCamPos.y < 0.0f || m_vec3DevCamPos.y > 0.0f) m_vec3DevCamPos.y = 0.0f;
+	if(m_vec3DevCamPos.y < 2.0f || m_vec3DevCamPos.y > 2.0f) m_vec3DevCamPos.y = 2.0f;
 
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
@@ -999,6 +1007,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 {
 
 	glm::mat4 currentProjMatrix;
+	glm::mat4 infiniteProjMatrix;
 	glm::mat4 currentViewMatrix;
 	glm::mat4 currentEyeMatrix;
 	glm::vec3 cameraFront;
@@ -1017,9 +1026,11 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 
 		glm::vec4 m_vFarPlaneDimensions = vrm->GetFarPlaneDimensions(nEye);
 		raymarchData.tanFovYOver2 = m_vFarPlaneDimensions.w;
+		infiniteProjMatrix = glm::mat4(1.0f);
 	} else {
 		//*** put manual matrices here***//
 		currentProjMatrix = m_matDevProjMatrix;  
+		infiniteProjMatrix = m_matDevProjMatrix_InfiniteFarPlane;
 		m_matDevViewMatrix = glm::lookAt(m_vec3DevCamPos, m_vec3DevCamPos + m_vec3DevCamFront, m_vec3DevCamUp);	
 		currentViewMatrix = m_matDevViewMatrix;
 		currentEyeMatrix = glm::mat4(1.0f);
@@ -1064,7 +1075,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	//raymarchData.modAngle = fmod((float)glfwGetTime(), 360.0); 	
 
 	//update variables for fiveCell
-	fiveCell.update(currentProjMatrix, currentViewMatrix, currentEyeMatrix, cameraFront, cameraPosition, machineLearning);
+	fiveCell.update(currentProjMatrix, currentViewMatrix, currentEyeMatrix, cameraFront, cameraPosition, machineLearning, infiniteProjMatrix);
 	
 	// draw controllers before scene	
 	if(!m_bDevMode && vrm){
@@ -1101,7 +1112,7 @@ void Graphics::RenderScene(vr::Hmd_Eye nEye, std::unique_ptr<VR_Manager>& vrm)
 	}
 
 	//draw fiveCell scene
-	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg);
+	fiveCell.draw(skyboxShaderProg, groundPlaneShaderProg, soundObjShaderProg, fiveCellShaderProg, quadShaderProg, currentProjMatrix, currentViewMatrix, currentEyeMatrix, raymarchData, mengerShaderProg, infiniteProjMatrix);
 
 }
 

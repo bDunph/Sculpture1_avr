@@ -527,23 +527,41 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 //	Ground Plane Setup
 //*********************************************************************************************
 	// Ground plane vertices
-	float groundVerts [12] = {
-		-1.0f, 0.0f, -1.0f,
-		-1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, -1.0f
+	//float groundVerts [12] = {
+	//	-1.0f, 0.0f, -1.0f,
+	//	-1.0f, 0.0f, 1.0f,
+	//	1.0f, 0.0f, 1.0f,
+	//	1.0f, 0.0f, -1.0f
+	//};
+
+	//verts for infinite plane
+	//approach taken from https://stackoverflow.com/questions/12965161/rendering-infinitely-large-plane
+	float groundVerts[20] = {
+		0.0f, 0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, -1.0f, 0.0f
 	};
 
-	unsigned int groundIndices [6] = {
+	//unsigned int groundIndices [6] = {
+	//	0, 1, 2,
+	//	0, 2, 3
+	//};
+
+	unsigned int groundIndices[12] = {
 		0, 1, 2,
-		0, 2, 3
+		0, 2, 3,
+		0, 3, 4,
+		0, 4, 1
 	};
 
-	float groundTexCoords [8] = {
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f
+	float groundTexCoords [10] = {
+		0.5f, 0.5f,
+		1.0f, 0.5f,
+		0.5f, 1.0f,
+		0.0f, 0.5f,
+		0.5f, 0.0f
 	};
 
 	//Set up ground plane buffers
@@ -553,16 +571,17 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	GLuint groundVBO;
 	glGenBuffers(1, &groundVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, groundVBO);
-	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), groundVerts, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), groundVerts, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	GLuint groundTexCoordVBO;
 	glGenBuffers(1, &groundTexCoordVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, groundTexCoordVBO);
-	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), groundTexCoords, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), groundTexCoords, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
@@ -573,7 +592,7 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int texWidth, texHeight, texChannels;
@@ -587,7 +606,7 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 
 	glGenBuffers(1, &groundIndexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), groundIndices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(unsigned int), groundIndices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	
 	//uniform setup
@@ -599,6 +618,9 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	ground_light2PosLoc = glGetUniformLocation(groundPlaneProg, "light2Pos");
 
 	ground_cameraPosLoc = glGetUniformLocation(groundPlaneProg, "camPos");
+	ground_MVEPLoc = glGetUniformLocation(groundPlaneProg, "MVEP");
+	ground_InvMVEPLoc = glGetUniformLocation(groundPlaneProg, "InvMVEP");
+	ground_InfProjLoc = glGetUniformLocation(groundPlaneProg, "InfProj");
 	
 	glBindVertexArray(0);
 
@@ -922,8 +944,6 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	//m_gliEyeMatLocation = glGetUniformLocation(shaderProg, "eyeMat");
 	m_gliMVEPMatrixLocation = glGetUniformLocation(shaderProg, "MVEPMat");
 	m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
-	m_gliMVEMatrixLocation = glGetUniformLocation(shaderProg, "MVEMat");
-	m_gliInverseMVELocation = glGetUniformLocation(shaderProg, "InvMVE");
 	m_gliRandomSizeLocation = glGetUniformLocation(shaderProg, "randSize");
 	m_gliRMSModulateValLocation = glGetUniformLocation(shaderProg, "rmsModVal");
 	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
@@ -983,7 +1003,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 //    return maxDist;
 //}
 
-void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning){
+void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, glm::vec3 camFront, glm::vec3 camPos, MachineLearning& machineLearning, glm::mat4 infProjMat){
 
 //***********************************************************************************************************
 // Update Stuff Here
@@ -1211,7 +1231,7 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	
 }
 
-void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg){
+void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjProg, GLuint fiveCellProg, GLuint quadShaderProg, glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, RaymarchData& raymarchData, GLuint mengerProg, glm::mat4 infProjMat){
 		
 //**********************************************************************************************************
 // Draw Stuff Here
@@ -1299,8 +1319,11 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glUniform3f(ground_lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(ground_light2PosLoc, light2Pos.x, light2Pos.y, light2Pos.z);
 	glUniform3f(ground_cameraPosLoc, camPosPerEye.x, camPosPerEye.y, camPosPerEye.z);
+	glUniformMatrix4fv(ground_MVEPLoc, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
+	glUniformMatrix4fv(ground_InvMVEPLoc, 1, GL_FALSE, &inverseMVEPMat[0][0]);
+	glUniformMatrix4fv(ground_InfProjLoc, 1, GL_FALSE, &infProjMat[0][0]);
 
-	glDrawElements(GL_TRIANGLES, 6 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
+	glDrawElements(GL_TRIANGLES, 12 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 	//glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -1377,8 +1400,6 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//glUniformMatrix4fv(m_gliEyeMatLocation, 1, GL_FALSE, &eyeMat[0][0]);
 	glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
 	glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
-	glUniformMatrix4fv(m_gliMVEMatrixLocation, 1, GL_FALSE, &modelViewEyeMat[0][0]);
-	glUniformMatrix4fv(m_gliInverseMVELocation, 1, GL_FALSE, &inverseMVEMat[0][0]);
 	glUniform1f(m_gliRandomSizeLocation, sizeVal);
 	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
 	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));

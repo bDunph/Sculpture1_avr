@@ -4,8 +4,6 @@ layout(location = 0) in vec3 position;
  
 uniform mat4 MVEPMat;
 uniform mat4 InvMVEP;
-uniform mat4 MVEMat;
-uniform mat4 InvMVE;
 
 out vec4 nearPos;
 out vec4 farPos;
