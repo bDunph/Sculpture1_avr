@@ -1,15 +1,28 @@
 #version 410
 
+#define DO_FRESNEL 1
+#define DO_REFLECTION 1
+#define DO_REFRACTION 1
+
+// refractive index of some common materials:
+// http://hyperphysics.phy-astr.gsu.edu/hbase/Tables/indrf.html
+#define REFRACTIVE_INDEX_OUTSIDE 1.00029
+#define REFRACTIVE_INDEX_INSIDE  1.125
+
+#define MAX_RAY_BOUNCES 5
+#define OBJECT_ABORB_COLOUR vec3(8.0, 8.0, 3.0)
+
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
-const float gamma = 2.2;
-const float REFLECT_AMOUNT = 0.02;
+const float GAMMA = 2.2;
+const float REFLECT_AMOUNT = 0.01;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
 uniform float rmsModVal;
+uniform samplerCube skybox;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -76,7 +89,7 @@ float crossSDF(vec3 p){
 
 float sceneSDF(vec3 samplePoint) {    
     float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
-    float cubeCross = crossSDF(samplePoint * 1.5) / 1.5;    
+    float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
     cube = differenceSDF(cube, cubeCross);
 
     float iterativeScalar = 1.0;
@@ -215,6 +228,105 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
 	return color;
 }
 
+//===========================================================
+// To calculate the fresnel reflection amout - taken from demofox's shader - 
+//	https://www.shadertoy.com/view/4tyXDR
+//============================================================
+float FresnelReflectAmount (float refIndOut, float refIndIn, vec3 normal, vec3 incident)
+{
+    #if DO_FRESNEL
+        // Schlick aproximation
+        float r0 = (refIndOut-refIndIn) / (refIndOut+refIndIn);
+        r0 *= r0;
+        float cosX = -dot(normal, incident);
+        if (refIndOut > refIndIn)
+        {
+            float n = refIndOut/refIndIn;
+            float sinT2 = n*n*(1.0-cosX*cosX);
+            // Total internal reflection
+            if (sinT2 > 1.0)
+                return 1.0;
+            cosX = sqrt(1.0-sinT2);
+        }
+        float x = 1.0-cosX;
+        float ret = r0+(1.0-r0)*x*x*x*x*x;
+
+        // adjust reflect multiplier for object reflectivity
+        ret = (REFLECT_AMOUNT + (1.0-REFLECT_AMOUNT) * ret);
+        return ret;
+    #else
+    	return REFLECT_AMOUNT;
+    #endif
+}
+
+//============================================================
+
+
+//============================================================
+// Returns the colour reflected or refracted from ray cast from
+// surface of an object
+//============================================================
+vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
+
+	//only factoring in skybox reflections at the moment
+	//need to add ground plane
+
+	return texture(skybox, rayDirection).rgb;
+
+
+}
+//============================================================
+
+//============================================================
+// Simulates total internal reflection and Beer's Law 
+// code from  https://www.shadertoy.com/view/4tyXDR
+//============================================================
+vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
+
+	float multiplier = 1.0;
+	vec3 returnVal = vec3(0.0);
+	float absorbDist = 0.0;
+	for(int i = 0; i < MAX_RAY_BOUNCES; ++i){
+
+		//try to intersect the object
+		float distance = shortestDistanceToSurface(rayPos, rayDirection, MIN_DIST, MAX_DIST, 1.0);
+		vec3 intersectPoint = rayPos + rayDirection * distance;
+		vec3 inNorm = estimateNormal(intersectPoint); 		
+
+		if(distance < 0.0) return returnVal;
+
+		//move ray position to intersection point
+		rayPos = rayPos + rayDirection * distance;
+		
+		//calculate Beer's Law absorption
+		absorbDist += distance;
+		vec3 absorbVal = exp(-OBJECT_ABORB_COLOUR * absorbDist);
+
+		//calculate how much to reflect or transmit
+		float reflectMult = FresnelReflectAmount(REFRACTIVE_INDEX_INSIDE, REFRACTIVE_INDEX_OUTSIDE, inNorm, rayDirection);  
+		float refractMult = 1.0 - reflectMult;
+		
+		//add in refraction outside of the object
+		vec3 refractDirection = refract(rayDirection, inNorm, REFRACTIVE_INDEX_INSIDE / REFRACTIVE_INDEX_OUTSIDE);
+		returnVal = GetColourFromScene(rayPos + refractDirection * 0.001, refractDirection) * refractMult * multiplier * absorbVal;
+
+		//add specular highlight based on refracted ray direction
+		returnVal += phongIllumination(vec3(0.1), vec3(0.1), vec3(1.0), 1.0, intersectPoint, rayPos,  1.0) * refractMult * multiplier * absorbVal;
+		
+		//follow ray down internal reflection path
+		rayDirection = reflect(rayDirection, inNorm);
+		
+		//move the ray down the ray path a bit
+		rayPos += rayDirection * 0.001;
+		
+		//recursively add reflectMult amout to consecutive bounces
+		multiplier *= reflectMult; 
+	}
+		
+	return returnVal;
+}
+//============================================================
+
 void main()
 {
 
@@ -236,19 +348,44 @@ void main()
     
     	// The closest point on the surface to the eyepoint along the view ray
     	vec3 p = rayOrigin + dist * rayDir;
+	vec3 incidentNormal = estimateNormal(p);
+
+	vec3 color = vec3(0.0);
+	vec3 returnVal = vec3(0.0);
 
     	// Use the surface normal as the ambient color of the material
-    	//vec3 K_a_orig = (estimateNormal(p) + vec3(1.0)) / 2.0;
+    	vec3 K_a_orig = (incidentNormal + vec3(1.0)) / 2.0;
     	vec3 K_a_mine = vec3(0.583, 0.095, 0.05);
-	vec3 K_a = K_a_mine;
+	vec3 K_a = K_a_orig * K_a_mine;
+	//vec3 K_a = vec3(0.1);	
     	vec3 K_d = K_a;
     	vec3 K_s = vec3(1.0, 1.0, 1.0);
-    	float shininess = 10.0;
+    	float shininess = 1.0;
     
-    	vec3 color = phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin, uniformScaleVal);
-    
+    	color += phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin, uniformScaleVal);
+
+	//following demofox blog and shadertoy for reflection etc. https://www.shadertoy.com/view/4tyXDR and https://blog.demofox.org/2017/01/09/raytracing-reflection-refraction-fresnel-total-internal-reflection-and-beers-law/
+
+	//move ray to intersection with cube
+	rayOrigin += rayDir * p;		
+
+	//calculate how much to reflect or transmit
+	float reflectionScaleVal = FresnelReflectAmount(REFRACTIVE_INDEX_OUTSIDE, REFRACTIVE_INDEX_INSIDE, incidentNormal, rayDir);	
+	float refractScaleVal = 1.0 - reflectionScaleVal;
+
+	//get reflection colour
+#if DO_REFLECTION
+	vec3 reflectDirection = reflect(rayDir, incidentNormal);
+	returnVal += GetColourFromScene(rayOrigin + reflectDirection * 0.001, reflectDirection) * reflectionScaleVal;	
+#endif
+
+	//get refraction colour
+#if DO_REFRACTION
+	vec3 refractDirection = refract(rayDir, incidentNormal, REFRACTIVE_INDEX_OUTSIDE / REFRACTIVE_INDEX_INSIDE);
+	returnVal += GetObjectInternalRayColour(rayOrigin + refractDirection * 0.001, refractDirection) * refractScaleVal;		
+#endif
 	//gamma correction
-	vec3 fragColor = pow(color, vec3(1.0 / gamma));
+	vec3 fragColor = pow(color + returnVal, vec3(1.0 / GAMMA));
     	fragColorOut = vec4(fragColor, 1.0);
 
 	vec4 pClipSpace =  MVEPMat * vec4(p, 1.0);
