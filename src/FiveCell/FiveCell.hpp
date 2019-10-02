@@ -154,6 +154,7 @@ private:
 	GLuint m_uiglSceneVAO;
 	GLuint m_uiglSceneVBO;
 	GLuint m_uiglIndexBuffer;
+	GLuint m_uiglGroundRayTexture;
 
 	GLint m_gliAspectLocation;
 	GLint m_gliTanFovLocation;

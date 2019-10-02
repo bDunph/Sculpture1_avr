@@ -182,7 +182,7 @@ bool Graphics::BInitGL(bool fullscreen){
 	//	std::cout << "quadShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 	//	return false;
 	//}
-	mengerShaderProg = BCreateSceneShaders("mengerAlt");
+	mengerShaderProg = BCreateSceneShaders("mengerGlass");
 	if(mengerShaderProg == NULL){
 		std::cout << "mengerShaderProg returned NULL: Graphics::BInitGL" << std::endl;
 		return false;

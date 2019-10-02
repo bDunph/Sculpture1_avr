@@ -919,6 +919,14 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	};
 	m_uiNumSceneIndices = _countof(sceneIndices);
 
+	float groundRayTexCoords [10] = {
+		0.5f, 0.5f,
+		1.0f, 0.5f,
+		0.5f, 1.0f,
+		0.0f, 0.5f,
+		0.5f, 0.0f
+	};
+
 	glGenVertexArrays(1, &m_uiglSceneVAO);
 	glBindVertexArray(m_uiglSceneVAO);
 
@@ -927,13 +935,39 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	glBindBuffer(GL_ARRAY_BUFFER, m_uiglSceneVBO);
 	glBufferData(GL_ARRAY_BUFFER, m_uiNumSceneVerts * sizeof(float), sceneVerts, GL_STATIC_DRAW);
 
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+	GLuint groundRayTexCoordVBO;
+	glGenBuffers(1, &groundRayTexCoordVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, groundRayTexCoordVBO);
+	glBufferData(GL_ARRAY_BUFFER, 10 * sizeof(float), groundRayTexCoords, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenTextures(1, &m_uiglGroundRayTexture);
+	glBindTexture(GL_TEXTURE_2D, m_uiglGroundRayTexture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int rayTexWidth, rayTexHeight, rayTexChannels;
+	unsigned char* groundRayTexData = stbi_load("desertFloor1_pow2.jpeg", &rayTexWidth, &rayTexHeight, &rayTexChannels, 0);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rayTexWidth, rayTexHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, groundRayTexData);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	stbi_image_free(groundRayTexData);
+
 	glGenBuffers(1, &m_uiglIndexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_uiNumSceneIndices * sizeof(unsigned int), sceneIndices, GL_STATIC_DRAW);
 	
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
+	
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
 
@@ -1324,7 +1358,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glUniformMatrix4fv(ground_InfProjLoc, 1, GL_FALSE, &infProjMat[0][0]);
 
 	glDrawElements(GL_TRIANGLES, 12 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
@@ -1392,6 +1426,10 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	float mengerAspect = raymarchData.aspect;
 	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
 
+	glBindVertexArray(m_uiglSceneVAO);
+	glBindTexture(GL_TEXTURE_2D, m_uiglGroundRayTexture);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
+
 	glUseProgram(mengerProg);
 	//glUniform1f(m_gliAspectLocation, mengerAspect);
 	//glUniform1f(m_gliTanFovLocation, mengerTanFovYOver2);
@@ -1405,8 +1443,9 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
 	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
 
-	glBindVertexArray(m_uiglSceneVAO);
+	
 	glDrawElements(GL_TRIANGLES, m_uiNumSceneIndices * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
+
 	glBindVertexArray(0);
 	
 	//update other events like input handling
