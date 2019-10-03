@@ -10,24 +10,24 @@
 #define REFRACTIVE_INDEX_INSIDE  1.125
 
 #define MAX_RAY_BOUNCES 10
-#define OBJECT_ABORB_COLOUR vec3(8.0, 3.0, 3.0)
+#define OBJECT_ABORB_COLOUR vec3(8.0, 8.0, 3.0)
 
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const float GAMMA = 2.2;
-const float REFLECT_AMOUNT = 0.01;
+const float REFLECT_AMOUNT = 0.04;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
 uniform float rmsModVal;
-uniform samplerCube skybox;
-uniform sampler2D groundReflectionTex;
+uniform samplerCube skyboxTex;
+uniform sampler2D groundTex;
 
 in vec4 nearPos;
 in vec4 farPos;
-in vec2 texCoordsOut;
+//in vec2 texCoordsOut;
 
 out vec4 fragColorOut; 
 
@@ -282,32 +282,32 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 	
 	//if rayDirection.y is pointing in a negative direction it will hit the 
 	//ground at some point
-	//if(rayDirection.y < 0.0){
-	//	//calculate point of intersection with ground plane
-	//	// from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
+	if(rayDirection.y < 0.0){
+		//calculate point of intersection with ground plane
+		// from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
 
-	//	vec3 groundNorm = vec3(0.0, 1.0, 0.0);
-	//	vec3 pointOnPlane = vec3(0.5, 0.0, 0.2);
-	//	
-	//	float denom = dot(groundNorm, rayDirection);
-	//	if(denom > 0.0000001){
-	//		vec3 lineSeg = pointOnPlane - rayPosition;
-	//		dist = dot(lineSeg, groundNorm) / denom;
+		vec3 groundNorm = vec3(0.0, 1.0, 0.0);
+		vec3 pointOnPlane = vec3(0.0, 0.0, 0.0);
+		
+		float denom = dot(groundNorm, rayDirection);
+		//if(denom > 0.0000001){
+			vec3 lineSeg = pointOnPlane - rayPosition;
+			dist = dot(lineSeg, groundNorm) / denom;
 
-	//		vec3 intersectPoint = rayPosition + rayDirection * dist;
+			vec3 intersectPoint = rayPosition + rayDirection * dist;
 
-	//		vec2 texCoords = vec2(intersectPoint.x, intersectPoint.z);
-	//		texCoords = normalize(texCoords);
+			vec2 texCoords = vec2(intersectPoint.x, intersectPoint.z);
+			texCoords = normalize(texCoords);
 
-	//		return texture(groundReflectionTex, texCoords).rgb;
+			return texture(groundTex, texCoords).rgb;
 
-	//	}
-	//	return texture(skybox, rayDirection).rgb;
-	//}
+		//}
+		//return texture(skyboxTex, rayDirection).rgb;
+	}
 	
 	//else return skybox
-	return texture(groundReflectionTex, vec2(abs(rayDirection.x), abs(rayDirection.z))).rgb;
-
+	return texture(skyboxTex, rayDirection).rgb;
+	//return texture(groundTex, rayDirection.xz).rgb;
 
 }
 //============================================================
@@ -423,6 +423,7 @@ void main()
 #endif
 	//gamma correction
 	vec3 fragColor = pow(color + returnVal, vec3(1.0 / GAMMA));
+	//vec3 fragColor = pow(color, vec3(1.0 / GAMMA));
     	fragColorOut = vec4(fragColor, 1.0);
 
 //-----------------------------------------------------------------------------

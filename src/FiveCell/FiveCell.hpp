@@ -72,6 +72,7 @@ private:
 	GLint ground_MVEPLoc;
 	GLint ground_InvMVEPLoc;
 	GLint ground_InfProjLoc;
+	GLint ground_texLoc;
 	
 	GLuint groundTexture;
 
@@ -155,6 +156,8 @@ private:
 	GLuint m_uiglSceneVBO;
 	GLuint m_uiglIndexBuffer;
 	GLuint m_uiglGroundRayTexture;
+	GLuint m_uiglSkyboxTexLoc;
+	GLuint m_uiglGroundTexLoc;
 
 	GLint m_gliAspectLocation;
 	GLint m_gliTanFovLocation;

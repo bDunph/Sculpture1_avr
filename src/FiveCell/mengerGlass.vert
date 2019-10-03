@@ -1,18 +1,18 @@
 #version 410
 
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec2 texCoordsIn;
+//layout(location = 1) in vec2 texCoordsIn;
  
 uniform mat4 MVEPMat;
 uniform mat4 InvMVEP;
 
 out vec4 nearPos;
 out vec4 farPos;
-out vec2 texCoordsOut;
+//out vec2 texCoordsOut;
 
 void main() {
 
-	texCoordsOut = texCoordsIn;
+	//texCoordsOut = texCoordsIn;
 	
 	//********* code from https://encreative.blogspot.com/2019/05/computing-ray-origin-and-direction-from.html *******//
 
