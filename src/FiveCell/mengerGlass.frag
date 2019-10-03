@@ -9,7 +9,7 @@
 #define REFRACTIVE_INDEX_OUTSIDE 1.00029
 #define REFRACTIVE_INDEX_INSIDE  1.125
 
-#define MAX_RAY_BOUNCES 10
+#define MAX_RAY_BOUNCES 2 
 #define OBJECT_ABORB_COLOUR vec3(8.0, 8.0, 3.0)
 
 const int MAX_MARCHING_STEPS = 255;
@@ -17,7 +17,7 @@ const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const float GAMMA = 2.2;
-const float REFLECT_AMOUNT = 0.04;
+const float REFLECT_AMOUNT = 0.02;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
@@ -91,20 +91,20 @@ float crossSDF(vec3 p){
 
 float sceneSDF(vec3 samplePoint) {    
     float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
-    float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
+    //float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
     //cube = differenceSDF(cube, cubeCross);
 
-    float iterativeScalar = 1.0;
-    
-    for(int i = 0; i <4; i++){
-     	
-        vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
-        //vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
-        iterativeScalar *= 3.0;
-        vec3 r = abs(1.0 - 4.0 * abs(a));
-        float cubeCross = crossSDF(r) / iterativeScalar;    
-        //cube = differenceSDF(cube, cubeCross);
-    }
+    //float iterativeScalar = 1.0;
+    //
+    //for(int i = 0; i <4; i++){
+    // 	
+    //    //vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
+    //    vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
+    //    iterativeScalar *= 3.0;
+    //    vec3 r = abs(1.0 - 4.0 * abs(a));
+    //    float cubeCross = crossSDF(r) / iterativeScalar;    
+    //    cube = differenceSDF(cube, cubeCross);
+    //}
     
     return cube;
 }
@@ -119,7 +119,7 @@ float sceneSDF(vec3 samplePoint) {
 // * start: the starting distance away from the eye
 // * end: the max distance away from the ey to march before giving up
 // */
-float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, float uniformScaleValue) {
+float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, float uniformScaleValue, bool internal) {
 
     	float depth = start;
 
@@ -130,9 +130,13 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 
         	float dist = sceneSDF(translatedPoint / uniformScaleValue) * uniformScaleValue;
 
-        	if (dist < EPSILON) {
+        	if (!internal && dist < EPSILON) {
 			return depth;
         	}
+
+		if(internal && dist > EPSILON){
+			return depth;
+		}
 
         	depth += dist;
 
@@ -216,8 +220,10 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
 	vec3 color = k_d * k_a;
     
 	vec3 light1Pos = vec3(1.0, 2.0, 1.0);
+	//vec3 light1Dir= normalize(-vec3(1.0, 2.0, 1.0));
+
 	//light1Pos += scaleVec;
-	vec3 light1Intensity = vec3(0.0);
+	vec3 light1Intensity = vec3(0.01);
     
 	color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Pos, light1Intensity);
     
@@ -286,18 +292,18 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 		//calculate point of intersection with ground plane
 		// from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
 
-		vec3 groundNorm = vec3(0.0, 1.0, 0.0);
+		vec3 groundNorm = vec3(0.0, -1.0, 0.0);
 		vec3 pointOnPlane = vec3(0.0, 0.0, 0.0);
 		
 		float denom = dot(groundNorm, rayDirection);
 		//if(denom > 0.0000001){
-			vec3 lineSeg = pointOnPlane - rayPosition;
+			vec3 lineSeg = rayPosition - pointOnPlane;
 			dist = dot(lineSeg, groundNorm) / denom;
 
 			vec3 intersectPoint = rayPosition + rayDirection * dist;
 
 			vec2 texCoords = vec2(intersectPoint.x, intersectPoint.z);
-			texCoords = normalize(texCoords);
+			//texCoords = normalize(texCoords);
 
 			return texture(groundTex, texCoords).rgb;
 
@@ -314,7 +320,7 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 
 //============================================================
 // Simulates total internal reflection and Beer's Law 
-// code from  https://www.shadertoy.com/view/4tyXDR
+// code from demofox https://www.shadertoy.com/view/4tyXDR
 //============================================================
 vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 
@@ -323,15 +329,21 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 	float absorbDist = 0.0;
 	for(int i = 0; i < MAX_RAY_BOUNCES; ++i){
 
+		vec3 rayOrigin = rayPos;
+
 		//try to intersect the object
-		float distance = shortestDistanceToSurface(rayPos, rayDirection, MIN_DIST, MAX_DIST, 1.0);
-		vec3 intersectPoint = rayPos + rayDirection * distance;
-		vec3 inNorm = estimateNormal(intersectPoint); 		
+		float distance = shortestDistanceToSurface(rayPos + rayDirection * 0.0001, rayDirection, MIN_DIST, 1.0, 1.0, true);
+		//float distance = 1.0;
+		distance = abs(distance);
+		rayPos = rayPos + rayDirection * distance;
+
+		vec3 inNorm = estimateNormal(rayPos); 		
+		inNorm = -inNorm;
 
 		if(distance < 0.0) return returnVal;
 
 		//move ray position to intersection point
-		rayPos = rayPos + rayDirection * distance;
+		//rayPos = rayPos + rayDirection * distance;
 		
 		//calculate Beer's Law absorption
 		absorbDist += distance;
@@ -343,16 +355,16 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 		
 		//add in refraction outside of the object
 		vec3 refractDirection = refract(rayDirection, inNorm, REFRACTIVE_INDEX_INSIDE / REFRACTIVE_INDEX_OUTSIDE);
-		returnVal = GetColourFromScene(rayPos + refractDirection * 0.001, refractDirection) * refractMult * multiplier * absorbVal;
+		returnVal += GetColourFromScene(rayPos + refractDirection * 0.001, refractDirection) * refractMult * multiplier * absorbVal;
 
 		//add specular highlight based on refracted ray direction
-		returnVal += phongIllumination(vec3(0.1), vec3(0.0), vec3(1.0), 0.0, intersectPoint * refractDirection, rayPos * rayDirection,  1.0) * refractMult * multiplier * absorbVal;
+		returnVal += phongIllumination(vec3(0.1), vec3(0.0), vec3(1.0), 0.0, rayPos, rayOrigin,  1.0) * refractMult * multiplier * absorbVal;
 		
 		//follow ray down internal reflection path
 		rayDirection = reflect(rayDirection, inNorm);
 		
 		//move the ray down the ray path a bit
-		rayPos += rayDirection * 0.001;
+		rayPos = rayPos + rayDirection * 0.001;
 		
 		//recursively add reflectMult amout to consecutive bounces
 		multiplier *= reflectMult; 
@@ -373,7 +385,7 @@ void main()
 	rayDir = normalize(rayDir);	
 
 	float uniformScaleVal = 1.0;
-    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal);
+    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal, false);
     
     	if (dist > MAX_DIST - EPSILON) {
         	// Didn't hit anything
@@ -395,7 +407,7 @@ void main()
 	//vec3 K_a = K_a_orig * K_a_mine;
 	vec3 K_a = vec3(0.1);	
     	vec3 K_d = vec3(0.0);;
-    	vec3 K_s = vec3(1.0, 1.0, 1.0);
+    	vec3 K_s = vec3(1.0);
     	float shininess = 0.0;
     
     	color += phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin, uniformScaleVal);
@@ -403,8 +415,8 @@ void main()
 	//following demofox blog and shadertoy for reflection etc. https://www.shadertoy.com/view/4tyXDR and https://blog.demofox.org/2017/01/09/raytracing-reflection-refraction-fresnel-total-internal-reflection-and-beers-law/
 
 	//move ray to intersection with cube
-	vec3 rOrigToP = p - rayOrigin;
-	vec3 surfaceRay = rayOrigin + rOrigToP;		
+	//vec3 rOrigToP = p - rayOrigin;
+	//vec3 surfaceRay = rayOrigin + rOrigToP;		
 
 	//calculate how much to reflect or transmit
 	float reflectionScaleVal = FresnelReflectAmount(REFRACTIVE_INDEX_OUTSIDE, REFRACTIVE_INDEX_INSIDE, incidentNormal, rayDir);	
@@ -413,13 +425,13 @@ void main()
 	//get reflection colour
 #if DO_REFLECTION
 	vec3 reflectDirection = reflect(rayDir, incidentNormal);
-	returnVal += GetColourFromScene(surfaceRay + reflectDirection * 0.001, reflectDirection) * reflectionScaleVal;	
+	returnVal += GetColourFromScene(p + reflectDirection * 0.001, reflectDirection) * reflectionScaleVal;	
 #endif
 
 	//get refraction colour
 #if DO_REFRACTION
 	vec3 refractDirection = refract(rayDir, incidentNormal, REFRACTIVE_INDEX_OUTSIDE / REFRACTIVE_INDEX_INSIDE);
-	returnVal += GetObjectInternalRayColour(surfaceRay + refractDirection * 0.001, refractDirection) * refractScaleVal;		
+	returnVal += GetObjectInternalRayColour(p + refractDirection * 0.001, refractDirection) * refractScaleVal;		
 #endif
 	//gamma correction
 	vec3 fragColor = pow(color + returnVal, vec3(1.0 / GAMMA));

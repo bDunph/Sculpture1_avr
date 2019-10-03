@@ -212,7 +212,7 @@ bool Graphics::BInitGL(bool fullscreen){
 		);
 		
 		//variables for view matrix
-		m_vec3DevCamPos = glm::vec3(0.0f, 2.0f, -3.0f);	
+		m_vec3DevCamPos = glm::vec3(0.0f, 0.0f, -1.0f);	
 		m_vec3DevCamUp = glm::vec3(0.0f, 1.0f, 0.0f);
 		m_vec3DevCamFront = glm::vec3(0.0f, 0.0f, -1.0f);
 
@@ -712,7 +712,7 @@ void Graphics::DevProcessInput(GLFWwindow *window){
         	m_vec3DevCamPos += glm::normalize(glm::cross(m_vec3DevCamFront, m_vec3DevCamUp)) * cameraSpeed;	
 	
 	//keep camera movement on the XZ plane
-	if(m_vec3DevCamPos.y < 2.0f || m_vec3DevCamPos.y > 2.0f) m_vec3DevCamPos.y = 2.0f;
+	if(m_vec3DevCamPos.y < 0.0f || m_vec3DevCamPos.y > 0.0f) m_vec3DevCamPos.y = 0.0f;
 
 	//record data
 	if(glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_R) == GLFW_REPEAT){
