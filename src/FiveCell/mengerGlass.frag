@@ -18,6 +18,7 @@ const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const float GAMMA = 2.2;
 const float REFLECT_AMOUNT = 0.02;
+const float CUBE_SIZE = 1.0;
 
 uniform mat4 MVEPMat;
 uniform float randSize; 
@@ -91,20 +92,20 @@ float crossSDF(vec3 p){
 
 float sceneSDF(vec3 samplePoint) {    
     float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
-    //float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
-    //cube = differenceSDF(cube, cubeCross);
+    float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
+    cube = differenceSDF(cube, cubeCross);
 
-    //float iterativeScalar = 1.0;
-    //
-    //for(int i = 0; i <4; i++){
-    // 	
-    //    //vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
-    //    vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
-    //    iterativeScalar *= 3.0;
-    //    vec3 r = abs(1.0 - 4.0 * abs(a));
-    //    float cubeCross = crossSDF(r) / iterativeScalar;    
-    //    cube = differenceSDF(cube, cubeCross);
-    //}
+    float iterativeScalar = 1.0;
+    
+    for(int i = 0; i <4; i++){
+     	
+        vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
+        //vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
+        iterativeScalar *= 3.0;
+        vec3 r = abs(1.0 - 4.0 * abs(a));
+        float cubeCross = crossSDF(r) / iterativeScalar;    
+        cube = differenceSDF(cube, cubeCross);
+    }
     
     return cube;
 }
@@ -119,24 +120,23 @@ float sceneSDF(vec3 samplePoint) {
 // * start: the starting distance away from the eye
 // * end: the max distance away from the ey to march before giving up
 // */
-float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, float uniformScaleValue, bool internal) {
+float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, float uniformScaleValue) {
 
     	float depth = start;
 
     	for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
 
-		vec3 pointPos = eye + depth * marchingDirection;
+		vec3 pointPos = vec3(0.0);
+
+		pointPos = eye + depth * marchingDirection;
+			
 		vec3 translatedPoint = pointPos + vec3(0.0, 0.0, 0.0);
 
         	float dist = sceneSDF(translatedPoint / uniformScaleValue) * uniformScaleValue;
 
-        	if (!internal && dist < EPSILON) {
+        	if (dist < EPSILON) {
 			return depth;
         	}
-
-		if(internal && dist > EPSILON){
-			return depth;
-		}
 
         	depth += dist;
 
@@ -177,9 +177,9 @@ vec3 estimateNormal(vec3 p) {
 // * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 // */
 vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
-                          vec3 lightPos, vec3 lightIntensity) {
+                          vec3 lightDir, vec3 lightIntensity) {
     vec3 N = estimateNormal(p);
-    vec3 L = normalize(lightPos - p);
+    vec3 L = normalize(lightDir);
     vec3 V = normalize(eye - p);
     vec3 R = normalize(reflect(-L, N));
     
@@ -219,28 +219,12 @@ vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 e
     	//const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
 	vec3 color = k_d * k_a;
     
-	vec3 light1Pos = vec3(1.0, 2.0, 1.0);
-	//vec3 light1Dir= normalize(-vec3(1.0, 2.0, 1.0));
+	vec3 light1Dir= vec3(-0.5, -1.0, 0.0);
 
-	//light1Pos += scaleVec;
-	vec3 light1Intensity = vec3(0.01);
+	vec3 light1Intensity = vec3(1.0);
     
-	color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Pos, light1Intensity);
-    
-	//vec3 light2Pos = vec3(4.0, 2.0, 4.0);
-	//light2Pos += scaleVec;
-	//vec3 light2Intensity = vec3(0.9, 0.9, 0.9);
-    
-	//color += phongContribForLight(k_d, k_s, alpha, p, eye, light2Pos, light2Intensity);    
-
-	//vec3 light3Pos = vec3(-5.0, 3.0, -4.0);
-
-    	//vec3 light3Intensity = vec3(0.4, 0.4, 0.4);
-    
-    	//color += phongContribForLight(k_d, k_s, alpha, p, eye,
-        //                          light3Pos,
-        //                          light3Intensity);    
-
+	color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Dir, light1Intensity);
+	
 	return color;
 }
 
@@ -320,7 +304,7 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 
 //============================================================
 // Simulates total internal reflection and Beer's Law 
-// code from demofox https://www.shadertoy.com/view/4tyXDR
+// code based on demofox https://www.shadertoy.com/view/4tyXDR
 //============================================================
 vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 
@@ -331,11 +315,14 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 
 		vec3 rayOrigin = rayPos;
 
-		//try to intersect the object
-		float distance = shortestDistanceToSurface(rayPos + rayDirection * 0.0001, rayDirection, MIN_DIST, 1.0, 1.0, true);
-		//float distance = 1.0;
-		distance = abs(distance);
-		rayPos = rayPos + rayDirection * distance;
+		//move ray origin along the ray direction through the whole object
+		//then raymarch back from that point to find the back surface
+		vec3 extendedRayPos = rayPos + rayDirection * (CUBE_SIZE * 2);
+
+		float distance = shortestDistanceToSurface(extendedRayPos, -rayDirection, MIN_DIST, MAX_DIST, 1.0);
+
+		//rayPos = rayPos + rayDirection * distance;
+		rayPos = extendedRayPos - rayDirection * distance;
 
 		vec3 inNorm = estimateNormal(rayPos); 		
 		inNorm = -inNorm;
@@ -358,7 +345,7 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 		returnVal += GetColourFromScene(rayPos + refractDirection * 0.001, refractDirection) * refractMult * multiplier * absorbVal;
 
 		//add specular highlight based on refracted ray direction
-		returnVal += phongIllumination(vec3(0.1), vec3(0.0), vec3(1.0), 0.0, rayPos, rayOrigin,  1.0) * refractMult * multiplier * absorbVal;
+		returnVal += phongIllumination(vec3(0.1), vec3(0.0), vec3(0.0), 0.0, rayPos, rayOrigin,  1.0) * refractMult * multiplier * absorbVal;
 		
 		//follow ray down internal reflection path
 		rayDirection = reflect(rayDirection, inNorm);
@@ -385,7 +372,7 @@ void main()
 	rayDir = normalize(rayDir);	
 
 	float uniformScaleVal = 1.0;
-    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal, false);
+    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal);
     
     	if (dist > MAX_DIST - EPSILON) {
         	// Didn't hit anything
@@ -407,7 +394,7 @@ void main()
 	//vec3 K_a = K_a_orig * K_a_mine;
 	vec3 K_a = vec3(0.1);	
     	vec3 K_d = vec3(0.0);;
-    	vec3 K_s = vec3(1.0);
+    	vec3 K_s = vec3(0.0);
     	float shininess = 0.0;
     
     	color += phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin, uniformScaleVal);
