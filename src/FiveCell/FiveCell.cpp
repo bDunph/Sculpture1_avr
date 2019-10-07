@@ -107,6 +107,24 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	//}
 //**********************************************************
 
+
+//**********************************************************
+// Lighting Components
+//**********************************************************
+
+	m_vec3MoonDirection = glm::vec3(-0.2f, -1.0f, -0.3f);
+	m_vec3MoonColour = glm::vec3(0.86f, 0.9f, 0.88f);
+	m_vec3MoonAmbient = glm::vec3(0.1f, 0.1f, 0.1f);
+	m_vec3MoonDiffuse = glm::vec3(0.1f, 0.1f, 0.1f);
+	m_vec3MoonSpecular = glm::vec3(0.5f, 0.5f, 0.5f);
+
+//**********************************************************
+// Material Properties
+//**********************************************************
+
+	m_vec3GroundSpecular = glm::vec3(0.2f, 0.2f, 0.2f);
+	m_fGroundShininess = 16.0f;
+
 //*********************************************************************************************
 // Machine Learning
 //********************************************************************************************
@@ -448,12 +466,12 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 
 	//load textures
 	std::vector<std::string> textureNames;
-	textureNames.push_back("desert3_px.jpg");
-	textureNames.push_back("desert3_nx.jpg");
-	textureNames.push_back("desert3_py.jpg");
-	textureNames.push_back("desert3_ny.jpg");
-	textureNames.push_back("desert3_pz.jpg");
-	textureNames.push_back("desert3_nz.jpg");
+	textureNames.push_back("lakeStarrySky_px.jpg");
+	textureNames.push_back("lakeStarrySky_nx.jpg");
+	textureNames.push_back("lakeStarrySky_py.jpg");
+	textureNames.push_back("lakeStarrySky_ny.jpg");
+	textureNames.push_back("lakeStarrySky_pz.jpg");
+	textureNames.push_back("lakeStarrySky_nz.jpg");
 
 	//std::string name1 = texName.append("_rt.tga");
 	//textureNames.push_back(name1);
@@ -506,7 +524,7 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	skybox_projMatLoc = glGetUniformLocation(skyboxProg, "projMat");
 	skybox_viewMatLoc = glGetUniformLocation(skyboxProg, "viewMat");
 	skybox_modelMatLoc = glGetUniformLocation(skyboxProg, "modelMat");
-	skybox_texUniformLoc = glGetUniformLocation(skyboxProg, "skybox");
+	//skybox_texUniformLoc = glGetUniformLocation(skyboxProg, "skybox");
 
 	//only use during development as computationally expensive
 	bool validProgram = is_valid(skyboxProg);
@@ -612,20 +630,23 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	ground_viewMatLoc = glGetUniformLocation(groundPlaneProg, "viewMat");
 	ground_modelMatLoc = glGetUniformLocation(groundPlaneProg, "groundModelMat");
 
-	ground_lightPosLoc = glGetUniformLocation(groundPlaneProg, "lightPos");
-	ground_light2PosLoc = glGetUniformLocation(groundPlaneProg, "light2Pos");
-
 	ground_cameraPosLoc = glGetUniformLocation(groundPlaneProg, "camPos");
-	ground_MVEPLoc = glGetUniformLocation(groundPlaneProg, "MVEP");
-	ground_InvMVEPLoc = glGetUniformLocation(groundPlaneProg, "InvMVEP");
-	ground_InfProjLoc = glGetUniformLocation(groundPlaneProg, "InfProj");
-	
+
 	ground_texLoc = glGetUniformLocation(groundPlaneProg, "groundTex");
+	
+	ground_lightDirLoc = glGetUniformLocation(groundPlaneProg, "light.direction");
+	ground_lightColourLoc = glGetUniformLocation(groundPlaneProg, "light.colour");
+	ground_lightAmbientLoc = glGetUniformLocation(groundPlaneProg, "light.ambient");
+	ground_lightDiffuseLoc = glGetUniformLocation(groundPlaneProg, "light.diffuse");
+	ground_lightSpecularLoc = glGetUniformLocation(groundPlaneProg, "light.specular");
+
+	ground_materialSpecularLoc = glGetUniformLocation(groundPlaneProg, "material.specular");
+	ground_materialShininessLoc = glGetUniformLocation(groundPlaneProg, "material.shininess");
 
 	glBindVertexArray(0);
 
 	groundModelMatrix = modelMatrix;
-	glm::vec3 yTranslation = glm::vec3(0.0f, -2.0f, 0.0f);
+	glm::vec3 yTranslation = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::mat4 translationMatrix = glm::translate(groundModelMatrix, yTranslation);
 	//glm::mat4 groundRotationMatrix = glm::rotate(groundModelMatrix, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));  
 	groundModelMatrix = translationMatrix;// * groundRotationMatrix;
@@ -984,7 +1005,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
 
 	m_uiglSkyboxTexLoc = glGetUniformLocation(shaderProg, "skyboxTex");
-	m_uiglGroundTexLoc = glGetUniformLocation(shaderProg, "groundTex");
+	m_uiglGroundTexLoc = glGetUniformLocation(shaderProg, "groundReflectionTex");
 
 	raymarchQuadModelMatrix = glm::mat4(1.0f);
 
@@ -1359,19 +1380,10 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	//glBindVertexArray(0);
 
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_CULL_FACE);
 
 	//draw skybox--------------------------------------------------------------
-	//skybox.draw(projMat, viewEyeMat, skyboxProg);
 	glm::mat4 viewNoTranslation = glm::mat4(glm::mat3(viewEyeMat));
-	//glm::mat4 viewNTEyeMat = eyeMat * viewNoTranslation; 
-		
-	//glm::mat4 viewNTEyeMat = glm::mat4(
-	//		viewEyeMat[0][0], viewEyeMat[1][0], viewEyeMat[2][0], 0.0f,
-	//		viewEyeMat[0][1], viewEyeMat[1][1], viewEyeMat[2][1], 0.0f,
-	//		viewEyeMat[0][2], viewEyeMat[1][2], viewEyeMat[2][2], 0.0f,
-	//		0.0f, 0.0f, 0.0f, 1.0f
-	//		);
 
 	glDepthFunc(GL_LEQUAL);
 	glDepthMask(GL_FALSE);
@@ -1381,9 +1393,10 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 
 	glUseProgram(skyboxProg);
 	
-	glUniform1i(skybox_texUniformLoc, 0);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
+
+	glUniform1i(skybox_texUniformLoc, 0);
 
 	glUniformMatrix4fv(skybox_projMatLoc, 1, GL_FALSE, &projMat[0][0]);
 	glUniformMatrix4fv(skybox_viewMatLoc, 1, GL_FALSE, &viewNoTranslation[0][0]);
@@ -1391,6 +1404,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 		
 	glDrawElements(GL_TRIANGLES, 36 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 
+	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -1399,29 +1413,31 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glDepthFunc(GL_LESS);
 
 	// draw ground plane-------------------------------------------------- 
-	//glDisable(GL_CULL_FACE);
-	//glDepthFunc(GL_LESS);
 
 	glBindVertexArray(groundVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer); 
 	glUseProgram(groundPlaneProg);
 
-	glUniform1i(ground_texLoc, 1);
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, groundTexture); 
+	glUniform1i(ground_texLoc, 1);
+
+	glUniform3f(ground_lightDirLoc, m_vec3MoonDirection.x, m_vec3MoonDirection.y, m_vec3MoonDirection.z);
+	glUniform3f(ground_lightColourLoc, m_vec3MoonColour.x, m_vec3MoonColour.y, m_vec3MoonColour.z);
+	glUniform3f(ground_lightAmbientLoc, m_vec3MoonAmbient.x, m_vec3MoonAmbient.y, m_vec3MoonAmbient.z);
+	glUniform3f(ground_lightDiffuseLoc, m_vec3MoonDiffuse.x, m_vec3MoonDiffuse.y, m_vec3MoonDiffuse.z);
+	glUniform3f(ground_lightSpecularLoc, m_vec3MoonSpecular.x, m_vec3MoonSpecular.y, m_vec3MoonSpecular.z);
+	glUniform3f(ground_materialSpecularLoc, m_vec3GroundSpecular.x, m_vec3GroundSpecular.y, m_vec3GroundSpecular.z);
+	glUniform1f(ground_materialShininessLoc, m_fGroundShininess);
 
 	glUniformMatrix4fv(ground_projMatLoc, 1, GL_FALSE, &projMat[0][0]);
 	glUniformMatrix4fv(ground_viewMatLoc, 1, GL_FALSE, &viewEyeMat[0][0]);
 	glUniformMatrix4fv(ground_modelMatLoc, 1, GL_FALSE, &groundModelMatrix[0][0]);
-	glUniform3f(ground_lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(ground_light2PosLoc, light2Pos.x, light2Pos.y, light2Pos.z);
 	glUniform3f(ground_cameraPosLoc, camPosPerEye.x, camPosPerEye.y, camPosPerEye.z);
-	glUniformMatrix4fv(ground_MVEPLoc, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
-	glUniformMatrix4fv(ground_InvMVEPLoc, 1, GL_FALSE, &inverseMVEPMat[0][0]);
-	glUniformMatrix4fv(ground_InfProjLoc, 1, GL_FALSE, &infProjMat[0][0]);
 
 	glDrawElements(GL_TRIANGLES, 12 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 
+	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -1443,13 +1459,14 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 
 	glUseProgram(mengerProg);
 
-	glUniform1i(m_uiglSkyboxTexLoc, 0);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
-	
-	glUniform1i(m_uiglGroundTexLoc, 1);
+
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, groundTexture);
+
+	glUniform1i(m_uiglSkyboxTexLoc, 0);
+	glUniform1i(m_uiglGroundTexLoc, 1);
 
 	//glUniform1f(m_gliAspectLocation, mengerAspect);
 	//glUniform1f(m_gliTanFovLocation, mengerTanFovYOver2);

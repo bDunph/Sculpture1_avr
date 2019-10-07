@@ -73,7 +73,16 @@ private:
 	GLint ground_InvMVEPLoc;
 	GLint ground_InfProjLoc;
 	GLint ground_texLoc;
+
+	GLint ground_lightDirLoc;
+	GLint ground_lightColourLoc;
+	GLint ground_lightAmbientLoc;
+	GLint ground_lightDiffuseLoc;
+	GLint ground_lightSpecularLoc;
 	
+	GLint ground_materialSpecularLoc;
+	GLint ground_materialShininessLoc;
+
 	GLuint groundTexture;
 
 	//fivecell 
@@ -204,6 +213,17 @@ private:
 	bool m_bMsg;
 	bool m_bRunMsg;
 	bool m_bCurrentRunMsgState;
+
+	//lighting components
+	glm::vec3 m_vec3MoonDirection;
+	glm::vec3 m_vec3MoonColour;
+	glm::vec3 m_vec3MoonAmbient;
+	glm::vec3 m_vec3MoonDiffuse;
+	glm::vec3 m_vec3MoonSpecular;
+	
+	//material properties
+	glm::vec3 m_vec3GroundSpecular;
+	float m_fGroundShininess;
 
 };
 #endif

@@ -24,7 +24,7 @@ uniform mat4 MVEPMat;
 uniform float randSize; 
 uniform float rmsModVal;
 uniform samplerCube skyboxTex;
-uniform sampler2D groundTex;
+uniform sampler2D groundReflectionTex;
 
 in vec4 nearPos;
 in vec4 farPos;
@@ -289,7 +289,7 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 			vec2 texCoords = vec2(intersectPoint.x, intersectPoint.z);
 			//texCoords = normalize(texCoords);
 
-			return texture(groundTex, texCoords).rgb;
+			return texture(groundReflectionTex, texCoords).rgb;
 
 		//}
 		//return texture(skyboxTex, rayDirection).rgb;
@@ -297,7 +297,7 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 	
 	//else return skybox
 	return texture(skyboxTex, rayDirection).rgb;
-	//return texture(groundTex, rayDirection.xz).rgb;
+	//return texture(groundReflectionTex, rayDirection.xz).rgb;
 
 }
 //============================================================
