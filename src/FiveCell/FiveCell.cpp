@@ -122,8 +122,15 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 // Material Properties
 //**********************************************************
 
+	//Ground
 	m_vec3GroundSpecular = glm::vec3(0.2f, 0.2f, 0.2f);
 	m_fGroundShininess = 16.0f;
+
+	//Cube
+	m_vec3CubeAmbient = glm::vec3(0.1f, 0.1f, 0.1f);
+	m_vec3CubeDiffuse = glm::vec3(0.2f, 0.2f, 0.2f);
+	m_vec3CubeSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
+	m_fCubeShininess = 256.0f;
 
 //*********************************************************************************************
 // Machine Learning
@@ -989,17 +996,21 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
 
-	//m_gliAspectLocation = glGetUniformLocation(shaderProg, "aspect");
-	//m_gliTanFovLocation = glGetUniformLocation(shaderProg, "fovYScale");
-	//m_gliViewMatrixLocation = glGetUniformLocation(shaderProg, "view");
-	//m_gliProjectionMatrixLocation = glGetUniformLocation(shaderProg, "proj");
-	//m_gliEyeMatLocation = glGetUniformLocation(shaderProg, "eyeMat");
+	m_uiglCubeMoonDirectionLoc = glGetUniformLocation(shaderProg, "moonlight.moonDir");
+	m_uiglCubeMoonColourLoc = glGetUniformLocation(shaderProg, "moonlight.moonColour");
+	m_uiglCubeMoonAmbientLoc = glGetUniformLocation(shaderProg, "moonlight.moonAmbient");
+	m_uiglCubeMoonDiffuseLoc = glGetUniformLocation(shaderProg, "moonlight.moonDiffuse");
+	m_uiglCubeMoonSpecularLoc = glGetUniformLocation(shaderProg, "moonlight.moonSpecular");
+
+	m_uiglCubeMaterialAmbientLoc = glGetUniformLocation(shaderProg, "material.cubeAmbient");
+	m_uiglCubeMaterialDiffuseLoc = glGetUniformLocation(shaderProg, "material.cubeDiffuse");
+	m_uiglCubeMaterialSpecularLoc = glGetUniformLocation(shaderProg, "material.cubeSpecular");
+	m_uiglCubeMaterialShininessLoc = glGetUniformLocation(shaderProg, "material.cubeShininess");
+	
 	m_gliMVEPMatrixLocation = glGetUniformLocation(shaderProg, "MVEPMat");
 	m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
 	m_gliRandomSizeLocation = glGetUniformLocation(shaderProg, "randSize");
 	m_gliRMSModulateValLocation = glGetUniformLocation(shaderProg, "rmsModVal");
-	//m_gliRotation3DLocation = glGetUniformLocation(shaderProg, "rot3D");
-	//m_gliTimerLocation = glGetUniformLocation(shaderProg, "timer");
 
 	m_uiglSkyboxTexLoc = glGetUniformLocation(shaderProg, "skyboxTex");
 	m_uiglGroundTexLoc = glGetUniformLocation(shaderProg, "groundReflectionTex");
@@ -1369,6 +1380,18 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glUniform1i(m_uiglGroundTexLoc, 1);
 	glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
 	glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
+
+	glUniform3f(m_uiglCubeMoonDirectionLoc, m_vec3MoonDirection.x, m_vec3MoonDirection.y, m_vec3MoonDirection.z);
+	glUniform3f(m_uiglCubeMoonColourLoc, m_vec3MoonColour.x, m_vec3MoonColour.y, m_vec3MoonColour.z);
+	glUniform3f(m_uiglCubeMoonAmbientLoc, m_vec3MoonAmbient.x, m_vec3MoonAmbient.y, m_vec3MoonAmbient.z);
+	glUniform3f(m_uiglCubeMoonDiffuseLoc, m_vec3MoonDiffuse.x, m_vec3MoonDiffuse.y, m_vec3MoonDiffuse.z);
+	glUniform3f(m_uiglCubeMoonSpecularLoc, m_vec3MoonSpecular.x, m_vec3MoonSpecular.y, m_vec3MoonSpecular.z);
+
+	glUniform3f(m_uiglCubeMaterialAmbientLoc, m_vec3CubeAmbient.x, m_vec3CubeAmbient.y, m_vec3CubeAmbient.z);
+	glUniform3f(m_uiglCubeMaterialDiffuseLoc, m_vec3CubeDiffuse.x, m_vec3CubeDiffuse.y, m_vec3CubeDiffuse.z);
+	glUniform3f(m_uiglCubeMaterialSpecularLoc, m_vec3CubeSpecular.x, m_vec3CubeSpecular.y, m_vec3CubeSpecular.z);
+	glUniform1f(m_uiglCubeMaterialShininessLoc, m_fCubeShininess);
+	
 	glUniform1f(m_gliRandomSizeLocation, sizeVal);
 	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
 	

@@ -164,21 +164,22 @@ private:
 	GLuint m_uiglSceneVAO;
 	GLuint m_uiglSceneVBO;
 	GLuint m_uiglIndexBuffer;
-	GLuint m_uiglGroundRayTexture;
 	GLuint m_uiglSkyboxTexLoc;
 	GLuint m_uiglGroundTexLoc;
 
-	GLint m_gliAspectLocation;
-	GLint m_gliTanFovLocation;
-	GLint m_gliProjectionMatrixLocation;
-	GLint m_gliEyeMatLocation;
-	GLint m_gliRotation3DLocation;
-	GLint m_gliTimerLocation;
-	GLint m_gliViewMatrixLocation;
+	GLuint m_uiglCubeMoonDirectionLoc;
+	GLuint m_uiglCubeMoonColourLoc;
+	GLuint m_uiglCubeMoonAmbientLoc;
+	GLuint m_uiglCubeMoonDiffuseLoc;
+	GLuint m_uiglCubeMoonSpecularLoc;
+
+	GLuint m_uiglCubeMaterialAmbientLoc;
+	GLuint m_uiglCubeMaterialDiffuseLoc;
+	GLuint m_uiglCubeMaterialSpecularLoc;
+	GLuint m_uiglCubeMaterialShininessLoc;
+
 	GLint m_gliMVEPMatrixLocation;
 	GLint m_gliInverseMVEPLocation;
-	GLint m_gliMVEMatrixLocation;
-	GLint m_gliInverseMVELocation;
 	GLint m_gliRandomSizeLocation;
 	GLint m_gliRMSModulateValLocation;
 	float sizeVal;
@@ -224,6 +225,11 @@ private:
 	//material properties
 	glm::vec3 m_vec3GroundSpecular;
 	float m_fGroundShininess;
+
+	glm::vec3 m_vec3CubeAmbient;
+	glm::vec3 m_vec3CubeDiffuse;
+	glm::vec3 m_vec3CubeSpecular;
+	float m_fCubeShininess;
 
 };
 #endif

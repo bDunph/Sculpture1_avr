@@ -12,6 +12,26 @@
 #define MAX_RAY_BOUNCES 2 
 #define OBJECT_ABORB_COLOUR vec3(8.0, 8.0, 3.0)
 
+struct Moonlight {
+
+	vec3 direction;
+	vec3 colour;
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+struct Material {
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+	float shininess;
+};
+
+uniform Moonlight moonlight;
+uniform Material material;
+
 const int MAX_MARCHING_STEPS = 255;
 const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
@@ -176,28 +196,28 @@ vec3 estimateNormal(vec3 p) {
 // *
 // * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 // */
-vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
-                          vec3 lightDir, vec3 lightIntensity) {
-    vec3 N = estimateNormal(p);
-    vec3 L = normalize(lightDir);
-    vec3 V = normalize(eye - p);
-    vec3 R = normalize(reflect(-L, N));
-    
-    float dotLN = dot(L, N);
-    float dotRV = dot(R, V);
-    
-    if (dotLN < 0.0) {
-        // Light not visible from this point on the surface
-        return vec3(0.0, 0.0, 0.0);
-    } 
-    
-    if (dotRV < 0.0) {
-        // Light reflection in opposite direction as viewer, apply only diffuse
-        // component
-        return lightIntensity * (k_d * dotLN);
-    }
-    return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
-}
+//vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
+//                          vec3 lightDir, vec3 lightIntensity) {
+//    vec3 N = estimateNormal(p);
+//    vec3 L = normalize(lightDir);
+//    vec3 V = normalize(eye - p);
+//    vec3 R = normalize(reflect(-L, N));
+//    
+//    float dotLN = dot(L, N);
+//    float dotRV = dot(R, V);
+//    
+//    if (dotLN < 0.0) {
+//        // Light not visible from this point on the surface
+//        return vec3(0.0, 0.0, 0.0);
+//    } 
+//    
+//    if (dotRV < 0.0) {
+//        // Light reflection in opposite direction as viewer, apply only diffuse
+//        // component
+//        return lightIntensity * (k_d * dotLN);
+//    }
+//    return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
+//}
 
 ///**
 // * Lighting via Phong illumination.
@@ -206,26 +226,33 @@ vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
 // * k_a: Ambient color
 // * k_d: Diffuse color
 // * k_s: Specular color
-// * alpha: Shininess coefficient
+// * shininess: Shininess coefficient
 // * p: position of point being lit
 // * eye: the position of the camera
 // *
 // * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
 // */
-vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye, float uniformScaleValue) {
+vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float shininess, vec3 p, vec3 eye) {
 
-	//vec3 scaleVec =  vec3(uniformScaleValue, uniformScaleValue, uniformScaleValue);
+	//ambient
+	vec3 ambient = moonlight.ambient * moonlight.colour * k_a;
 
-    	//const vec3 ambientLight = 0.5 * vec3(1.0, 1.0, 1.0);
-	vec3 color = k_d * k_a;
-    
-	vec3 light1Dir= vec3(-0.5, -1.0, 0.0);
+   	//diffuse
+	vec3 normal = estimateNormal(p);
+	vec3 lightDirection = normalize(-moonlight.direction);
+	float diffAngle = max(dot(normal, lightDirection), 0.0);
+	vec3 diffuse = moonlight.colour * moonlight.diffuse * diffAngle * k_d;
+  
+	//specular
+	vec3 viewDir = normalize(eye - p);
+	vec3 halfwayVector = normalize(lightDirection + viewDir);
+	float specularAngle = pow(max(dot(normal, halfwayVector), 0.0), shininess);	  	
+	vec3 specular = moonlight.colour * moonlight.specular * (specularAngle * k_s);
 
-	vec3 light1Intensity = vec3(1.0);
-    
-	color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Dir, light1Intensity);
+	//color += phongContribForLight(k_d, k_s, alpha, p, eye, light1Dir, light1Intensity);
+	vec3 colour = ambient + diffuse + specular;
 	
-	return color;
+	return colour;
 }
 
 //===========================================================
@@ -345,7 +372,7 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 		returnVal += GetColourFromScene(rayPos + refractDirection * 0.001, refractDirection) * refractMult * multiplier * absorbVal;
 
 		//add specular highlight based on refracted ray direction
-		returnVal += phongIllumination(vec3(0.1), vec3(0.0), vec3(0.0), 0.0, rayPos, rayOrigin,  1.0) * refractMult * multiplier * absorbVal;
+		returnVal += phongIllumination(material.ambient, material.diffuse, material.specular, material.shininess, rayPos, rayOrigin) * refractMult * multiplier * absorbVal;
 		
 		//follow ray down internal reflection path
 		rayDirection = reflect(rayDirection, inNorm);
@@ -371,6 +398,8 @@ void main()
 	vec3 rayDir = rayEnd - rayOrigin;
 	rayDir = normalize(rayDir);	
 
+	rayOrigin += vec3(0.0, -1.0, 0.0);
+
 	float uniformScaleVal = 1.0;
     	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal);
     
@@ -388,16 +417,13 @@ void main()
 	vec3 color = vec3(0.0);
 	vec3 returnVal = vec3(0.0);
 
-    	// Use the surface normal as the ambient color of the material
-    	//vec3 K_a_orig = (incidentNormal + vec3(1.0)) / 2.0;
-    	//vec3 K_a_mine = vec3(0.583, 0.095, 0.05);
-	//vec3 K_a = K_a_orig * K_a_mine;
-	vec3 K_a = vec3(0.1);	
-    	vec3 K_d = vec3(0.0);;
-    	vec3 K_s = vec3(0.0);
-    	float shininess = 0.0;
+	//send material light properties to phong calculations
+	vec3 K_a = material.ambient;
+    	vec3 K_d = material.diffuse;
+    	vec3 K_s = material.specular;
+    	float shininess = material.shininess;
     
-    	color += phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin, uniformScaleVal);
+    	color += phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin);
 
 	//following demofox blog and shadertoy for reflection etc. https://www.shadertoy.com/view/4tyXDR and https://blog.demofox.org/2017/01/09/raytracing-reflection-refraction-fresnel-total-internal-reflection-and-beers-law/
 
