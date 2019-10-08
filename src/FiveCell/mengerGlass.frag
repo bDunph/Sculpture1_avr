@@ -48,7 +48,6 @@ uniform sampler2D groundReflectionTex;
 
 in vec4 nearPos;
 in vec4 farPos;
-//in vec2 texCoordsOut;
 
 out vec4 fragColorOut; 
 
@@ -112,18 +111,18 @@ float crossSDF(vec3 p){
 
 float sceneSDF(vec3 samplePoint) {    
     float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
-    float cubeCross = crossSDF(samplePoint * 3.0) / 3.0;    
+    float cubeCross = crossSDF(samplePoint / 0.33) * 0.33;    
     cube = differenceSDF(cube, cubeCross);
 
-    float iterativeScalar = 1.0;
+    float iterativeScalar = 3.0;
     
-    for(int i = 0; i <4; i++){
+    for(int i = 0; i < 2; i++){
      	
         vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
         //vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
         iterativeScalar *= 3.0;
-        vec3 r = abs(1.0 - 4.0 * abs(a));
-        float cubeCross = crossSDF(r) / iterativeScalar;    
+        vec3 r = 1.0 - 4.0 * abs(a);
+        cubeCross = crossSDF(r) / iterativeScalar;    
         cube = differenceSDF(cube, cubeCross);
     }
     
@@ -140,7 +139,7 @@ float sceneSDF(vec3 samplePoint) {
 // * start: the starting distance away from the eye
 // * end: the max distance away from the ey to march before giving up
 // */
-float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end, float uniformScaleValue) {
+float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, float end) {
 
     	float depth = start;
 
@@ -150,9 +149,7 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 
 		pointPos = eye + depth * marchingDirection;
 			
-		vec3 translatedPoint = pointPos + vec3(0.0, 0.0, 0.0);
-
-        	float dist = sceneSDF(translatedPoint / uniformScaleValue) * uniformScaleValue;
+        	float dist = sceneSDF(pointPos);
 
         	if (dist < EPSILON) {
 			return depth;
@@ -180,58 +177,6 @@ vec3 estimateNormal(vec3 p) {
     	));
 }
 
-///**
-// * Lighting contribution of a single point light source via Phong illumination.
-// * 
-// * The vec3 returned is the RGB color of the light's contribution.
-// *
-// * k_a: Ambient color
-// * k_d: Diffuse color
-// * k_s: Specular color
-// * alpha: Shininess coefficient
-// * p: position of point being lit
-// * eye: the position of the camera
-// * lightPos: the position of the light
-// * lightIntensity: color/intensity of the light
-// *
-// * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
-// */
-//vec3 phongContribForLight(vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye,
-//                          vec3 lightDir, vec3 lightIntensity) {
-//    vec3 N = estimateNormal(p);
-//    vec3 L = normalize(lightDir);
-//    vec3 V = normalize(eye - p);
-//    vec3 R = normalize(reflect(-L, N));
-//    
-//    float dotLN = dot(L, N);
-//    float dotRV = dot(R, V);
-//    
-//    if (dotLN < 0.0) {
-//        // Light not visible from this point on the surface
-//        return vec3(0.0, 0.0, 0.0);
-//    } 
-//    
-//    if (dotRV < 0.0) {
-//        // Light reflection in opposite direction as viewer, apply only diffuse
-//        // component
-//        return lightIntensity * (k_d * dotLN);
-//    }
-//    return lightIntensity * (k_d * dotLN + k_s * pow(dotRV, alpha));
-//}
-
-///**
-// * Lighting via Phong illumination.
-// * 
-// * The vec3 returned is the RGB color of that point after lighting is applied.
-// * k_a: Ambient color
-// * k_d: Diffuse color
-// * k_s: Specular color
-// * shininess: Shininess coefficient
-// * p: position of point being lit
-// * eye: the position of the camera
-// *
-// * See https://en.wikipedia.org/wiki/Phong_reflection_model#Description
-// */
 vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float shininess, vec3 p, vec3 eye) {
 
 	//ambient
@@ -297,9 +242,14 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 
 	float dist = 0.0;
 	
-	//if rayDirection.y is pointing in a negative direction it will hit the 
-	//ground at some point
-	if(rayDirection.y < 0.0){
+	float surfaceDist = shortestDistanceToSurface(rayPosition, rayDirection, MIN_DIST, MAX_DIST);
+	if(surfaceDist < MAX_DIST){
+		vec3 surfacePoint = rayPosition + rayDirection * surfaceDist;
+		
+    		vec3 colour = phongIllumination(material.ambient, material.diffuse, material.specular, material.shininess, surfacePoint, rayPosition);
+		return colour;
+	} else if(surfaceDist == MAX_DIST && rayDirection.y < 0.0){
+
 		//calculate point of intersection with ground plane
 		// from https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection
 
@@ -307,25 +257,18 @@ vec3 GetColourFromScene(in vec3 rayPosition, in vec3 rayDirection){
 		vec3 pointOnPlane = vec3(0.0, 0.0, 0.0);
 		
 		float denom = dot(groundNorm, rayDirection);
-		//if(denom > 0.0000001){
-			vec3 lineSeg = rayPosition - pointOnPlane;
-			dist = dot(lineSeg, groundNorm) / denom;
+		vec3 lineSeg = rayPosition - pointOnPlane;
+		dist = dot(lineSeg, groundNorm) / denom;
 
-			vec3 intersectPoint = rayPosition + rayDirection * dist;
+		vec3 intersectPoint = rayPosition + rayDirection * dist;
 
-			vec2 texCoords = vec2(intersectPoint.x, intersectPoint.z);
-			//texCoords = normalize(texCoords);
+		vec2 texCoords = vec2(intersectPoint.x, intersectPoint.z);
 
-			return texture(groundReflectionTex, texCoords).rgb;
-
-		//}
-		//return texture(skyboxTex, rayDirection).rgb;
+		return texture(groundReflectionTex, texCoords).rgb;
 	}
 	
 	//else return skybox
 	return texture(skyboxTex, rayDirection).rgb;
-	//return texture(groundReflectionTex, rayDirection.xz).rgb;
-
 }
 //============================================================
 
@@ -338,6 +281,9 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 	float multiplier = 1.0;
 	vec3 returnVal = vec3(0.0);
 	float absorbDist = 0.0;
+	vec3 inNorm = vec3(0.0);
+	float distance = 0.0;
+
 	for(int i = 0; i < MAX_RAY_BOUNCES; ++i){
 
 		vec3 rayOrigin = rayPos;
@@ -346,19 +292,15 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 		//then raymarch back from that point to find the back surface
 		vec3 extendedRayPos = rayPos + rayDirection * (CUBE_SIZE * 2);
 
-		float distance = shortestDistanceToSurface(extendedRayPos, -rayDirection, MIN_DIST, MAX_DIST, 1.0);
+		float distance = shortestDistanceToSurface(extendedRayPos, -rayDirection, MIN_DIST, MAX_DIST);
 
-		//rayPos = rayPos + rayDirection * distance;
 		rayPos = extendedRayPos - rayDirection * distance;
 
-		vec3 inNorm = estimateNormal(rayPos); 		
+		inNorm = estimateNormal(rayPos); 		
 		inNorm = -inNorm;
 
 		if(distance < 0.0) return returnVal;
 
-		//move ray position to intersection point
-		//rayPos = rayPos + rayDirection * distance;
-		
 		//calculate Beer's Law absorption
 		absorbDist += distance;
 		vec3 absorbVal = exp(-OBJECT_ABORB_COLOUR * absorbDist);
@@ -400,8 +342,7 @@ void main()
 
 	rayOrigin += vec3(0.0, -1.0, 0.0);
 
-	float uniformScaleVal = 1.0;
-    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST, uniformScaleVal);
+    	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST);
     
     	if (dist > MAX_DIST - EPSILON) {
         	// Didn't hit anything
@@ -426,10 +367,6 @@ void main()
     	color += phongIllumination(K_a, K_d, K_s, shininess, p, rayOrigin);
 
 	//following demofox blog and shadertoy for reflection etc. https://www.shadertoy.com/view/4tyXDR and https://blog.demofox.org/2017/01/09/raytracing-reflection-refraction-fresnel-total-internal-reflection-and-beers-law/
-
-	//move ray to intersection with cube
-	//vec3 rOrigToP = p - rayOrigin;
-	//vec3 surfaceRay = rayOrigin + rOrigToP;		
 
 	//calculate how much to reflect or transmit
 	float reflectionScaleVal = FresnelReflectAmount(REFRACTIVE_INDEX_OUTSIDE, REFRACTIVE_INDEX_INSIDE, incidentNormal, rayDir);	
