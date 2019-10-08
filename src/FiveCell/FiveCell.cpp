@@ -165,8 +165,8 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	//model matrix
 	modelMatrix = glm::mat4(1.0f);
 
-	lightPos = glm::vec3(-2.0f, -1.0f, -1.5f); 
-	light2Pos = glm::vec3(1.0f, 40.0f, 1.5f);
+	//lightPos = glm::vec3(-2.0f, -1.0f, -1.5f); 
+	//light2Pos = glm::vec3(1.0f, 40.0f, 1.5f);
 //****************************************************************************************************
 
 
@@ -524,7 +524,6 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	skybox_projMatLoc = glGetUniformLocation(skyboxProg, "projMat");
 	skybox_viewMatLoc = glGetUniformLocation(skyboxProg, "viewMat");
 	skybox_modelMatLoc = glGetUniformLocation(skyboxProg, "modelMat");
-	//skybox_texUniformLoc = glGetUniformLocation(skyboxProg, "skybox");
 
 	//only use during development as computationally expensive
 	bool validProgram = is_valid(skyboxProg);
@@ -632,8 +631,6 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 
 	ground_cameraPosLoc = glGetUniformLocation(groundPlaneProg, "camPos");
 
-	ground_texLoc = glGetUniformLocation(groundPlaneProg, "groundTex");
-	
 	ground_lightDirLoc = glGetUniformLocation(groundPlaneProg, "light.direction");
 	ground_lightColourLoc = glGetUniformLocation(groundPlaneProg, "light.colour");
 	ground_lightAmbientLoc = glGetUniformLocation(groundPlaneProg, "light.ambient");
@@ -646,10 +643,10 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 	glBindVertexArray(0);
 
 	groundModelMatrix = modelMatrix;
-	glm::vec3 yTranslation = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::mat4 translationMatrix = glm::translate(groundModelMatrix, yTranslation);
+	//glm::vec3 yTranslation = glm::vec3(0.0f, 0.0f, 0.0f);
+	//glm::mat4 translationMatrix = glm::translate(groundModelMatrix, yTranslation);
 	//glm::mat4 groundRotationMatrix = glm::rotate(groundModelMatrix, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));  
-	groundModelMatrix = translationMatrix;// * groundRotationMatrix;
+	//groundModelMatrix = translationMatrix;// * groundRotationMatrix;
 //***************************************************************************************************		
 		
 
@@ -1296,107 +1293,21 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 //*********************************************************************************************************
 
 	glm::mat4 viewEyeMat = eyeMat * viewMat;
-
 	
 	camPosPerEye = glm::vec3(viewEyeMat[0][3], viewEyeMat[1][3], viewEyeMat[2][3]);
-
-	//draw 4D polytope	
-	//float a = 0.0f;
-
-	//glBindVertexArray(vao);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index);
-	//glUseProgram(fiveCellProg);
-
-	//glUniformMatrix4fv(projMatLoc, 1, GL_FALSE, &projMat[0][0]);
-	//glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, &viewEyeMat[0][0]);
-	//glUniformMatrix4fv(fiveCellModelMatLoc, 1, GL_FALSE, &fiveCellModelMatrix[0][0]);
-      	//glUniformMatrix4fv(rotationZWLoc, 1, GL_FALSE, &rotationZW[0][0]);
-	//glUniformMatrix4fv(rotationXWLoc, 1, GL_FALSE, &rotationXW[0][0]);
-	//glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-	//glUniform3f(light2PosLoc, light2Pos.x, light2Pos.y, light2Pos.z);
-	//glUniform3f(cameraPosLoc, camPosPerEye.x, camPosPerEye.y, camPosPerEye.z);
-	//glUniform1f(alphaLoc, a);
-
-	////single draw call for refractive rendering
-	////glDrawElements(GL_TRIANGLES, 30 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-      	////glDrawElements(GL_LINES, 20 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-
-      	////draw 5-cell using index buffer and 5 pass transparency technique from http://www.alecjacobson.com/weblog/?p=2750
-	////1st pass
-	//glDisable(GL_CULL_FACE);
-	//glDepthFunc(GL_LESS);
-	//float f = 0.75f;
-	//float origAlpha = 0.4f;	
-	//a = 0.0f;
-	//glUniform1f(alphaLoc, a);
-	//glDrawElements(GL_TRIANGLES, 30 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-
-	////2nd pass
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
-	//glDepthFunc(GL_ALWAYS);
-	//a = origAlpha * f;
-	//glUniform1f(alphaLoc, a);
-	//glDrawElements(GL_TRIANGLES, 30 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-	//
-	////3rd pass
-	//glDepthFunc(GL_LEQUAL);
-	//a = (origAlpha - (origAlpha * f)) / (1.0f - (origAlpha * f));
-	//glUniform1f(alphaLoc, a);
-	//glDrawElements(GL_TRIANGLES, 30 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-	//
-	////4th pass
-	//glCullFace(GL_BACK);
-	//glDepthFunc(GL_ALWAYS);
-	//a = origAlpha * f;
-	//glUniform1f(alphaLoc, a);
-	//glDrawElements(GL_TRIANGLES, 30 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-
-	////5th pass
-	//glDisable(GL_CULL_FACE);
-	//glDepthFunc(GL_LEQUAL);
-	//a = (origAlpha - (origAlpha * f)) / (1.0f - (origAlpha * f));
-	//glUniform1f(alphaLoc, a);
-	//glDrawElements(GL_TRIANGLES, 30 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
-
 	
-	//draw texture quad
-	//glBindVertexArray(quadVAO);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadIndexBuffer); 
-	//glBindTexture(GL_TEXTURE_2D, quadTexID); 
-	//glUseProgram(quadShaderProg);
-
-	//glUniformMatrix4fv(quad_projMatLoc, 1, GL_FALSE, &projMat[0][0]);
-	//glUniformMatrix4fv(quad_viewMatLoc, 1, GL_FALSE, &viewEyeMat[0][0]);
-	//glUniformMatrix4fv(quad_modelMatLoc, 1, GL_FALSE, &quadModelMatrix[0][0]);
-	////glUniform3f(quad_lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-	////glUniform3f(quad_light2PosLoc, light2Pos.x, light2Pos.y, light2Pos.z);
-	////glUniform3f(quad_cameraPosLoc, camPosPerEye.x, camPosPerEye.y, camPosPerEye.z);
-
-	//glDrawElements(GL_TRIANGLES, 36 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
-
-	//glDisable(GL_CULL_FACE);
-
 	//draw skybox--------------------------------------------------------------
 	glm::mat4 viewNoTranslation = glm::mat4(glm::mat3(viewEyeMat));
 
 	glDepthFunc(GL_LEQUAL);
 	glDepthMask(GL_FALSE);
 		
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
+
 	glBindVertexArray(skyboxVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxIndexBuffer); 
 
 	glUseProgram(skyboxProg);
-	
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
-
-	glUniform1i(skybox_texUniformLoc, 0);
 
 	glUniformMatrix4fv(skybox_projMatLoc, 1, GL_FALSE, &projMat[0][0]);
 	glUniformMatrix4fv(skybox_viewMatLoc, 1, GL_FALSE, &viewNoTranslation[0][0]);
@@ -1404,23 +1315,21 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 		
 	glDrawElements(GL_TRIANGLES, 36 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 
 	// draw ground plane-------------------------------------------------- 
 
+	glBindTexture(GL_TEXTURE_2D, groundTexture); 
+
 	glBindVertexArray(groundVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer); 
-	glUseProgram(groundPlaneProg);
 
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, groundTexture); 
-	glUniform1i(ground_texLoc, 1);
+	glUseProgram(groundPlaneProg);
 
 	glUniform3f(ground_lightDirLoc, m_vec3MoonDirection.x, m_vec3MoonDirection.y, m_vec3MoonDirection.z);
 	glUniform3f(ground_lightColourLoc, m_vec3MoonColour.x, m_vec3MoonColour.y, m_vec3MoonColour.z);
@@ -1437,27 +1346,13 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 
 	glDrawElements(GL_TRIANGLES, 12 * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-	//draw sound test objects
-	//for(int i = 0; i < _countof(soundObjects); i++){
-
-	//for(int i = 0; i < 5; i++){
-	//	soundObjects[i].draw(projMat, viewEyeMat, lightPos, light2Pos, camPosPerEye, soundObjProg);
-	//}	
-		
-	//draw menger sponge
+	//draw menger sponge-----------------------------------------------------------------
 	float mengerAspect = raymarchData.aspect;
 	float mengerTanFovYOver2 = raymarchData.tanFovYOver2;
-
-	glBindVertexArray(m_uiglSceneVAO);
-	//glBindTexture(GL_TEXTURE_2D, m_uiglGroundRayTexture);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
-
-	glUseProgram(mengerProg);
 
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexID);
@@ -1465,51 +1360,28 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, groundTexture);
 
+	glBindVertexArray(m_uiglSceneVAO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_uiglIndexBuffer);
+
+	glUseProgram(mengerProg);
+
 	glUniform1i(m_uiglSkyboxTexLoc, 0);
 	glUniform1i(m_uiglGroundTexLoc, 1);
-
-	//glUniform1f(m_gliAspectLocation, mengerAspect);
-	//glUniform1f(m_gliTanFovLocation, mengerTanFovYOver2);
-	//glUniformMatrix4fv(m_gliViewMatrixLocation, 1, GL_FALSE, &viewMat[0][0]);
-	//glUniformMatrix4fv(m_gliProjectionMatrixLocation, 1, GL_FALSE, &projMat[0][0]);
-	//glUniformMatrix4fv(m_gliEyeMatLocation, 1, GL_FALSE, &eyeMat[0][0]);
 	glUniformMatrix4fv(m_gliMVEPMatrixLocation, 1, GL_FALSE, &modelViewEyeProjectionMat[0][0]);
 	glUniformMatrix4fv(m_gliInverseMVEPLocation, 1, GL_FALSE, &inverseMVEPMat[0][0]);
 	glUniform1f(m_gliRandomSizeLocation, sizeVal);
 	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
-	//glUniform1f(m_gliRotation3DLocation, static_cast<float>(*m_pRotationVal));
-	//glUniform1f(m_gliTimerLocation, raymarchData.modAngle);
-
 	
 	glDrawElements(GL_TRIANGLES, m_uiNumSceneIndices * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 
-	glActiveTexture(GL_TEXTURE0 + 0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	
-	//update other events like input handling
-	//glfwPollEvents();
-
-	// workaround for macOS Mojave bug
-	//if(needDraw){
-	//	glfwShowWindow(window);
-	//	glfwHideWindow(window);
-	//	glfwShowWindow(window);
-	//	needDraw = false;
-	//}
-
-	//put the stuff we've been drawing onto the display
-	//glfwSwapBuffers(window);
-
-	//glfwSetCursorPosCallback(window, mouse_callback);
-	//glfwSetWindowSizeCallback(window, glfw_window_size_callback);
-	//glfwSetErrorCallback(glfw_error_callback);
-		
-	//lastFrame = currentFrame;
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
+
 
 void FiveCell::exit(){
 	//stop csound

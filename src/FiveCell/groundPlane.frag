@@ -58,6 +58,4 @@ void main(){
 	vec3 colWithGamma = pow(result, vec3(1.0 / GAMMA));
 
     	colour_out = vec4(colWithGamma, 1.0);
-	//colour_out = texture(material.groundTex, texCoordOut);
-
 } 
