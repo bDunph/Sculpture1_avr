@@ -59,7 +59,7 @@ ares5	mode	aexc,	2063.6,	540
 ares = (ares1+ares2+ares3+ares4+ares5)/5
 
 gaOut1 = aexc + ares 
-	outs	gaOut1,	gaOut1
+	;outs	gaOut1,	gaOut1
 
 kRms	rms	gaOut1
 	chnset	kRms,	"rmsOut"
@@ -191,10 +191,10 @@ endin
 instr 7 ; Bowed String Resonator
 ;**************************************************************************************		
 
-kRandPressure	random	1.0,	1.3
+kRandPressure	random	2.0,	3.3
 kRandPos	random	0.025,	0.035
 
-kAmpBow = ampdbfs(-1)
+kAmpBow = ampdbfs(-3)
 kFreqBow = 50
 kPresBow = kRandPressure
 kRatBow = kRandPos
@@ -252,8 +252,11 @@ asig5	clip	astr5,	0,	1
 asig6	clip	astr6,	0,	1
 asig7	clip	astr7,	0,	1
 
-aOut	sum	asig1,	asig2,	asig3,	asig4,	asig5,	asig6,	asig7
-	outs	aOut,	aOut
+gaOut1	sum	asig1,	asig2,	asig3,	asig4,	asig5,	asig6,	asig7
+	;outs	aOut,	aOut
+
+kRms	rms	gaOut1
+	chnset	kRms,	"rmsOut"
 
 endin
 
@@ -374,7 +377,7 @@ kDist portk kDistanceVal, kPortTime ;to filter out audio artifacts due to the di
 
 aLeftSig, aRightSig  hrtfmove2	gaOut1, kAzimuthVal, kElevationVal, "hrtf-48000-left.dat", "hrtf-48000-right.dat", 4, 9.0, 48000
 aLeftSig = aLeftSig / (kDist + 0.00001)
-aRightSigs = aRightSig / (kDist + 0.00001)
+aRightSig = aRightSig / (kDist + 0.00001)
 	
 aL = aLeftSig
 aR = aRightSig
@@ -415,7 +418,7 @@ f3 	0 	1024 	19 	0.5 	0.5 	270 	0.5
 
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-i1	2	100000	-2		
+;i1	2	100000	-2		
 
 ;i2	14	2
 ;i.	+	2
@@ -437,12 +440,12 @@ i1	2	100000	-2
 ;i6	96	5	0.7
 ;i.	+	5	0.85
 ;i.	+	5	0.94
-;
-;i7	112	5	
-;i.	+	5
-;i.	+	5
-;i.	+	5
-;
+
+i7	2	5	
+i.	+	5
+i.	+	5
+i.	+	10000
+
 ;i8	133	4
 ;i.	+	4
 ;i.	+	4	
@@ -460,7 +463,7 @@ i1	2	100000	-2
 ;i. 	+ 	5 	3
 ;i. 	+ 	5 	.25
 
-;i12	2	180	
+i12	2	100000	
 
 ;i13	0	240
 

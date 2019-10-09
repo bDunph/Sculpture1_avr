@@ -118,8 +118,8 @@ float sceneSDF(vec3 samplePoint) {
     
     for(int i = 0; i < 2; i++){
      	
-        vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
-        //vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
+        //vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
+        vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
         iterativeScalar *= 3.0;
         vec3 r = 1.0 - 4.0 * abs(a);
         cubeCross = crossSDF(r) / iterativeScalar;    
@@ -151,11 +151,13 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 			
         	float dist = sceneSDF(pointPos);
 
+		float distDisplacement = (sin(20.0 * pointPos.x) * sin(20.0 * pointPos.y) * sin(20.0 * pointPos.z)) * (rmsModVal * 0.2);
+
         	if (dist < EPSILON) {
-			return depth;
+			return depth + distDisplacement;
         	}
 
-        	depth += dist;
+        	depth += dist + distDisplacement;
 
         	if (depth >= end) {
         	    return end;
@@ -349,7 +351,7 @@ void main()
         	fragColorOut = vec4(0.0, 0.0, 0.0, 0.0);
 			return;
     	}
-    
+
     	// The closest point on the surface to the eyepoint along the view ray
     	vec3 p = rayOrigin + dist * rayDir;
 
