@@ -148,14 +148,10 @@ private:
 
 	//Csound
 	CsoundSession *session;
-	//MYFLT* vert0Vol;
-	//MYFLT* vert1Vol;
-	//MYFLT* vert2Vol;
-	//MYFLT* vert3Vol;
-	//MYFLT* vert4Vol;
 	MYFLT* hrtfVals[3];
 	MYFLT* randomFrequencyVal;
 	MYFLT* m_pRmsOut;
+	MYFLT* m_cspSineControlVal;
 
 	//raymarching quad
 	unsigned int m_uiNumSceneVerts;
@@ -182,6 +178,8 @@ private:
 	GLint m_gliInverseMVEPLocation;
 	GLint m_gliRandomSizeLocation;
 	GLint m_gliRMSModulateValLocation;
+	GLint m_gliSineControlValLoc;
+
 	float sizeVal;
 	float modulateVal;
 
@@ -230,6 +228,10 @@ private:
 	glm::vec3 m_vec3CubeDiffuse;
 	glm::vec3 m_vec3CubeSpecular;
 	float m_fCubeShininess;
+
+	//control variables
+	float sineControlVal;
+
 
 };
 #endif

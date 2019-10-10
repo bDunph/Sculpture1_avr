@@ -68,6 +68,12 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 		return false;
 	} 
 
+	const char* sineVal = "sineControlVal";
+	if(session->GetChannelPtr(m_cspSineControlVal, sineVal, CSOUND_INPUT_CHANNEL | CSOUND_CONTROL_CHANNEL) != 0){
+		std::cout << "GetChannelPtr could not get the sineControlVal value" << std::endl;
+		return false;
+	}
+
 //********* output values from csound to avr *******************//
 
 	const char* rmsOut = "rmsOut";
@@ -1011,6 +1017,7 @@ bool FiveCell::BSetupRaymarchQuad(GLuint shaderProg)
 	m_gliInverseMVEPLocation = glGetUniformLocation(shaderProg, "InvMVEP");
 	m_gliRandomSizeLocation = glGetUniformLocation(shaderProg, "randSize");
 	m_gliRMSModulateValLocation = glGetUniformLocation(shaderProg, "rmsModVal");
+	m_gliSineControlValLoc = glGetUniformLocation(shaderProg, "sineControlVal");
 
 	m_uiglSkyboxTexLoc = glGetUniformLocation(shaderProg, "skyboxTex");
 	m_uiglGroundTexLoc = glGetUniformLocation(shaderProg, "groundReflectionTex");
@@ -1087,15 +1094,12 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	glm::vec4 mengerPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	glm::mat4 mengerModelMatrix = glm::mat4(1.0f);		
 
-	//position of menger cube
-	//glm::vec4 posCameraSpace = eyeMat * viewMat * mengerModelMatrix * mengerPosition;;		
 	glm::vec4 posCameraSpace = viewMat * mengerModelMatrix * mengerPosition;;		
 
 	//position of menger cube in world space
 	glm::vec4 posWorldSpace = mengerModelMatrix * mengerPosition;
 	
 	//calculate azimuth and elevation values for hrtf
-	//glm::vec4 viewerPosCameraSpace = viewMat * glm::vec4(camPos, 1.0f);
 	glm::vec4 viewerPosCameraSpace = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	glm::vec4 viewerPosWorldSpace = glm::vec4(camPos, 1.0f);;
 
@@ -1113,19 +1117,21 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	float azimuth = atan2(valX, valZ);
 	azimuth *= (180.0f/PI); 	
 	
-	//elevation in world space
-	//float oppSide = soundPosWorldSpace.y - viewerPosWorldSpace.y;
-	//float sinVal = oppSide / rWorldSpace;
-	
 	//elevation in camera space
 	float oppSide = soundPosCameraSpace.y - viewerPosCameraSpace.y;
 	float sinVal = oppSide / rCamSpace;
 	float elevation = asin(sinVal);
 	elevation *= (180.0f/PI);		
 	
+	//send values to Csound pointers
 	*hrtfVals[0] = (MYFLT)azimuth;
 	*hrtfVals[1] = (MYFLT)elevation;
 	*hrtfVals[2] = (MYFLT)rCamSpace;
+
+	//sine function
+	sineControlVal = sin(glfwGetTime());
+
+	*m_cspSineControlVal = (MYFLT)sineControlVal;
 
 //*********************************************************************************************
 // Machine Learning 
@@ -1394,6 +1400,7 @@ void FiveCell::draw(GLuint skyboxProg, GLuint groundPlaneProg, GLuint soundObjPr
 	
 	glUniform1f(m_gliRandomSizeLocation, sizeVal);
 	glUniform1f(m_gliRMSModulateValLocation, modulateVal);
+	glUniform1f(m_gliSineControlValLoc, sineControlVal);
 	
 	glDrawElements(GL_TRIANGLES, m_uiNumSceneIndices * sizeof(unsigned int), GL_UNSIGNED_INT, (void*)0);
 

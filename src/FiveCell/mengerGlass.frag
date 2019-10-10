@@ -10,7 +10,8 @@
 #define REFRACTIVE_INDEX_INSIDE  1.125
 
 #define MAX_RAY_BOUNCES 2 
-#define OBJECT_ABORB_COLOUR vec3(8.0, 8.0, 3.0)
+#define OBJECT_ABSORB_COLOUR vec3(8.0, 8.0, 3.0)
+#define OBJECT_ABSORB_COLOUR_2 vec3(0.3, 9.0, 9.0)
 
 struct Moonlight {
 
@@ -41,8 +42,11 @@ const float REFLECT_AMOUNT = 0.02;
 const float CUBE_SIZE = 1.0;
 
 uniform mat4 MVEPMat;
+
 uniform float randSize; 
 uniform float rmsModVal;
+uniform float sineControlVal;
+
 uniform samplerCube skyboxTex;
 uniform sampler2D groundReflectionTex;
 
@@ -110,24 +114,48 @@ float crossSDF(vec3 p){
 }
 
 float sceneSDF(vec3 samplePoint) {    
-    float cube = boxSDF(samplePoint, vec3(1.0, 1.0, 1.0));
+    float cube = boxSDF(samplePoint, vec3(1.0 + (10.0 * cos(sineControlVal) * 0.01), 1.0 + (10.0 * sin(sineControlVal) * 0.01), 1.0 + (10.0 * cos(sineControlVal) * 0.01)));
     float cubeCross = crossSDF(samplePoint / 0.33) * 0.33;    
     cube = differenceSDF(cube, cubeCross);
 
     float iterativeScalar = 3.0;
     
-    for(int i = 0; i < 2; i++){
+    for(int i = 0; i < 5; i++){
      	
         //vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
         vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
         iterativeScalar *= 3.0;
-        vec3 r = 1.0 - 4.0 * abs(a);
+        vec3 r = 1.0 - 3.0 * abs(a);
         cubeCross = crossSDF(r) / iterativeScalar;    
         cube = differenceSDF(cube, cubeCross);
     }
     
     return cube;
 }
+
+//----------------------------------------------------------------------------------------
+// Mandelbulb SDF taken from https://www.shadertoy.com/view/tdtGRj
+//----------------------------------------------------------------------------------------
+float mandelbulbSDF(vec3 pos) {
+
+	float Power = 2.8;
+    	float r = length(pos);
+    	if(r > 1.5) return r-1.2;
+    	vec3 z = pos;
+    	float dr = 1.0, theta, phi;
+    	    for (int i = 0; i < 3; i++) {
+    	    	r = length(z);
+    	    	if (r>1.5) break;
+    	    	theta = acos(z.y/r * sineControlVal);
+    	    	phi = atan(z.z,z.x);
+    	    	dr =  pow( r, Power-1.0)*Power*dr + 1.0;
+    	    	theta *= Power;
+    	    	phi *= Power;
+    	    	z = pow(r,Power)*vec3(sin(theta * sineControlVal)*cos(phi), cos(theta), sin(phi)*sin(theta)) + pos;
+    	    }
+    	    return 0.5*log(r)*r/dr;
+}
+//----------------------------------------------------------------------------------------
 
 ///**
 // * Return the shortest distance from the eyepoint to the scene surface along
@@ -149,15 +177,16 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 
 		pointPos = eye + depth * marchingDirection;
 			
-        	float dist = sceneSDF(pointPos);
+        	//float dist = sceneSDF(pointPos);
+		float dist = mandelbulbSDF(pointPos);
 
-		float distDisplacement = (sin(20.0 * pointPos.x) * sin(20.0 * pointPos.y) * sin(20.0 * pointPos.z)) * (rmsModVal * 0.2);
+		//float distDisplacement = sin(sineControlVal * pointPos.x) * sin(sineControlVal * pointPos.y) * sin(sineControlVal * pointPos.z);
 
         	if (dist < EPSILON) {
-			return depth + distDisplacement;
+			return depth;
         	}
 
-        	depth += dist + distDisplacement;
+        	depth += dist;
 
         	if (depth >= end) {
         	    return end;
@@ -168,16 +197,28 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
     	return end;
 }
 
+//----------------------------------------------------------------------------------------
+// Estimate mandelbulb normal
+//----------------------------------------------------------------------------------------
+vec3 estimateNormal(vec3 p) {
+    	return normalize(vec3(
+    	    mandelbulbSDF(vec3(p.x + EPSILON, p.y, p.z)) - mandelbulbSDF(vec3(p.x - EPSILON, p.y, p.z)),
+    	    mandelbulbSDF(vec3(p.x, p.y + EPSILON, p.z)) - mandelbulbSDF(vec3(p.x, p.y - EPSILON, p.z)),
+    	    mandelbulbSDF(vec3(p.x, p.y, p.z  + EPSILON)) - mandelbulbSDF(vec3(p.x, p.y, p.z - EPSILON))
+    	));
+}
+//----------------------------------------------------------------------------------------
+
 ///**
 // * Using the gradient of the SDF, estimate the normal on the surface at point p.
 // */
-vec3 estimateNormal(vec3 p) {
-    	return normalize(vec3(
-    	    sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
-    	    sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
-    	    sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
-    	));
-}
+//vec3 estimateNormal(vec3 p) {
+//    	return normalize(vec3(
+//    	    sceneSDF(vec3(p.x + EPSILON, p.y, p.z)) - sceneSDF(vec3(p.x - EPSILON, p.y, p.z)),
+//    	    sceneSDF(vec3(p.x, p.y + EPSILON, p.z)) - sceneSDF(vec3(p.x, p.y - EPSILON, p.z)),
+//    	    sceneSDF(vec3(p.x, p.y, p.z  + EPSILON)) - sceneSDF(vec3(p.x, p.y, p.z - EPSILON))
+//    	));
+//}
 
 vec3 phongIllumination(vec3 k_a, vec3 k_d, vec3 k_s, float shininess, vec3 p, vec3 eye) {
 
@@ -305,7 +346,8 @@ vec3 GetObjectInternalRayColour(in vec3 rayPos, in vec3 rayDirection){
 
 		//calculate Beer's Law absorption
 		absorbDist += distance;
-		vec3 absorbVal = exp(-OBJECT_ABORB_COLOUR * absorbDist);
+		vec3 mixedColour = mix(OBJECT_ABSORB_COLOUR, OBJECT_ABSORB_COLOUR_2, 0.0);
+		vec3 absorbVal = exp(-mixedColour * absorbDist);
 
 		//calculate how much to reflect or transmit
 		float reflectMult = FresnelReflectAmount(REFRACTIVE_INDEX_INSIDE, REFRACTIVE_INDEX_OUTSIDE, inNorm, rayDirection);  
@@ -342,7 +384,7 @@ void main()
 	vec3 rayDir = rayEnd - rayOrigin;
 	rayDir = normalize(rayDir);	
 
-	rayOrigin += vec3(0.0, -1.0, 0.0);
+	rayOrigin += vec3(0.0, -1.2, 0.0);
 
     	float dist = shortestDistanceToSurface(rayOrigin, rayDir, MIN_DIST, MAX_DIST);
     

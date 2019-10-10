@@ -85,20 +85,24 @@ endin
 instr 3 ; Physical Bowed Bar Instrument
 ;*************************************************************************************
 
+kSineControlVal	chnget	"sineControlVal"
+
 kEnv	adsr	0.45,	0.8,	0.05,	0.6
 
-kp = 1.9 
+kp = 1.9
 
-asig	wgbowedbar	ampdbfs(-1),	133,	0.7,	kp,	0.969
-asig = (asig + asig + asig + asig + asig + asig) * kEnv
+asig	wgbowedbar	ampdbfs(-1),	133,	0.7*kSineControlVal,	kp*kSineControlVal,	0.995
+gaOut1 = (asig + asig + asig + asig + asig + asig) * kEnv
 
-     outs asig, asig
+     ;outs asig, asig
 
 endin
 
 ;*************************************************************************************
 instr 4 ; Waveguide + Mode Instrument - Noise Filter
 ;*************************************************************************************
+
+kSineControlVal	chnget	"sineControlVal"
 
 ;envelope
 kEnv	adsr	0.3,	0.1,	0.8,	0.6
@@ -113,7 +117,7 @@ kfreq		init	200
 kcutoff		init	300
 kfeedback	init	0.2
 
-awg1	wguide1	asig,	kfreq,	kcutoff,	kfeedback
+awg1	wguide1	asig,	kfreq,	kcutoff * kSineControlVal,	kfeedback
 
 ;waveguide model2
 kfreq2		linseg	800,	p3/2,	100,	p3/2,	300
@@ -143,9 +147,9 @@ kQFactor2	linseg	3,	p3/2,	15,	p3/2,	5
 aexc2	mode	aToneOut,	kModeFreq2,	kQFactor2
 aexc2 = aexc2 * iamp 
 
-aexc = (aexc1 + aexc2)/2
+gaOut1 = (aexc1 + aexc2)/2
 
-	outs	aexc,	aexc
+	;outs	aexc,	aexc
 
 endin
 
@@ -191,6 +195,8 @@ endin
 instr 7 ; Bowed String Resonator
 ;**************************************************************************************		
 
+kSineControlVal	chnget	"sineControlVal"
+
 kRandPressure	random	2.0,	3.3
 kRandPos	random	0.025,	0.035
 
@@ -198,13 +204,13 @@ kAmpBow = ampdbfs(-3)
 kFreqBow = 50
 kPresBow = kRandPressure
 kRatBow = kRandPos
-kVibfBow = 6
+kVibfBow = 12 * kSineControlVal 
 kVAmpBow = ampdbfs(-3)
 
 aBow	wgbow	kAmpBow,	kFreqBow,	kPresBow,	kRatBow,	kVibfBow,	kVAmpBow	
 
 ;Tibetan Bowl Resonances
-kfr1 = 221 
+kfr1 = 221
 kfr2 = 614
 kfr3 = 1145
 kfr4 = 1804
@@ -343,9 +349,9 @@ instr 10 ; Spectral Instrument
 
 ain  diskin2 "24cellRow_mono.wav", 1
 fs1,fsi2 pvsifd ain,2048,512,1		; ifd analysis
-fst  partials fs1,fsi2,.03,1,10,100	; partial tracking
-aout resyn fst, 1, 5.5, 10, 2		; resynthesis (up a 5th)
-     outs aout, aout
+fst  partials fs1,fsi2,.003,1,3,500	; partial tracking
+gaOut1 resyn fst, 1, 0.5, 250, 2		; resynthesis 
+     ;outs aout, aout
 
 endin
 
@@ -360,8 +366,8 @@ kshift	linseg	0,	p3/3,	0.9,	p3/3,	-0.3,	p3/3,	0
 asig  soundin "24cellRow_mono.wav"			; get the signal in
 fsig  pvsanal asig, 1024, 256, 1024, 1	; analyse it
 ftps  pvswarp fsig, kscal, kshift		; warp it
-atps  pvsynth ftps			; synthesise it                      
-      outs atps, atps
+gaOut1 pvsynth ftps			; synthesise it                      
+      ;outs atps, atps
 
 endin
 
@@ -424,12 +430,12 @@ f3 	0 	1024 	19 	0.5 	0.5 	270 	0.5
 ;i.	+	2
 ;i.	+	2	
 ;
-;i3	21	5	
+i3	2	10000	
 ;i.	+	5
 ;i.	+	5
 ;i.	+	5
 ;
-;i4	42	10
+;i4	2	10000
 ;i.	+	5
 ;i.	+	2
 ;
@@ -441,10 +447,10 @@ f3 	0 	1024 	19 	0.5 	0.5 	270 	0.5
 ;i.	+	5	0.85
 ;i.	+	5	0.94
 
-i7	2	5	
-i.	+	5
-i.	+	5
-i.	+	10000
+;i7	2	5	
+;i.	+	5
+;i.	+	5
+;i.	+	10000
 
 ;i8	133	4
 ;i.	+	4
@@ -453,12 +459,12 @@ i.	+	10000
 ;i9	146	6
 ;i.	+	6
 ;i.	+	6
-;
-;i10	165	3
+
+;i10	2	3
 ;i.	+	5
-;i.	+	9
-;
-;i11 	183 	5 	1
+;i.	+	10000
+
+;i11 	2 	5 	1
 ;i. 	+ 	5 	1.5
 ;i. 	+ 	5 	3
 ;i. 	+ 	5 	.25
