@@ -1,6 +1,6 @@
 #version 410
 
-#define DO_FRESNEL 1
+#define DO_FRESNEL 0
 #define DO_REFLECTION 1
 #define DO_REFRACTION 1
 
@@ -178,7 +178,7 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 		pointPos = eye + depth * marchingDirection;
 			
         	//float dist = sceneSDF(pointPos);
-		float dist = mandelbulbSDF(pointPos);
+		float dist = mandelbulbSDF(pointPos + vec3(0.0, -0.3, 0.0));
 
 		//float distDisplacement = sin(sineControlVal * pointPos.x) * sin(sineControlVal * pointPos.y) * sin(sineControlVal * pointPos.z);
 

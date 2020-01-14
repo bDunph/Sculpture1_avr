@@ -1129,7 +1129,7 @@ void FiveCell::update(glm::mat4 projMat, glm::mat4 viewMat, glm::mat4 eyeMat, gl
 	*hrtfVals[2] = (MYFLT)rCamSpace;
 
 	//sine function
-	sineControlVal = sin(glfwGetTime());
+	sineControlVal = sin(glfwGetTime() * 0.3f);
 
 	*m_cspSineControlVal = (MYFLT)sineControlVal;
 
