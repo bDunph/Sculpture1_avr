@@ -114,6 +114,16 @@ float crossSDF(vec3 p){
 }
 
 float sceneSDF(vec3 samplePoint) {    
+	
+
+	mat3 yRot = mat3(cos(rmsModVal), 0.0, sin(rmsModVal),
+			0.0, 1.0, 0.0,
+			-sin(rmsModVal), 0.0, cos(rmsModVal));
+
+	mat3 zRot = mat3(cos(rmsModVal), -sin(rmsModVal), 0.0,
+			sin(rmsModVal), cos(rmsModVal), 0.0,
+			0.0, 0.0, 1.0);
+
     float cube = boxSDF(samplePoint, vec3(1.0 + (10.0 * cos(sineControlVal) * 0.01), 1.0 + (10.0 * sin(sineControlVal) * 0.01), 1.0 + (10.0 * cos(sineControlVal) * 0.01)));
     float cubeCross = crossSDF(samplePoint / 0.33) * 0.33;    
     cube = differenceSDF(cube, cubeCross);
@@ -123,7 +133,8 @@ float sceneSDF(vec3 samplePoint) {
     for(int i = 0; i < 5; i++){
      	
         //vec3 a = mod((samplePoint * sin(rmsModVal)) * iterativeScalar, 2.0) - 1.0;
-        vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
+        vec3 a = mod((samplePoint * yRot * zRot) * iterativeScalar, 2.0) - 1.0;
+        //vec3 a = mod(samplePoint * iterativeScalar, 2.0) - 1.0;
         iterativeScalar *= 3.0;
         vec3 r = 1.0 - 3.0 * abs(a);
         cubeCross = crossSDF(r) / iterativeScalar;    
@@ -171,14 +182,15 @@ float shortestDistanceToSurface(vec3 eye, vec3 marchingDirection, float start, f
 
     	float depth = start;
 
+	
     	for (int i = 0; i < MAX_MARCHING_STEPS; i++) {
 
 		vec3 pointPos = vec3(0.0);
 
 		pointPos = eye + depth * marchingDirection;
 			
-        	//float dist = sceneSDF(pointPos);
-		float dist = mandelbulbSDF(pointPos + vec3(0.0, -0.3, 0.0));
+        	float dist = sceneSDF(pointPos);
+		//float dist = mandelbulbSDF(pointPos + vec3(0.0, -0.3, 0.0));
 
 		//float distDisplacement = sin(sineControlVal * pointPos.x) * sin(sineControlVal * pointPos.y) * sin(sineControlVal * pointPos.z);
 

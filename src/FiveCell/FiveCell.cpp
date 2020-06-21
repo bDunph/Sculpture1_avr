@@ -119,8 +119,9 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 //**********************************************************
 
 	m_vec3MoonDirection = glm::vec3(-0.2f, -1.0f, -0.3f);
-	m_vec3MoonColour = glm::vec3(0.86f, 0.9f, 0.88f);
-	m_vec3MoonAmbient = glm::vec3(0.1f, 0.1f, 0.1f);
+	//m_vec3MoonColour = glm::vec3(0.86f, 0.9f, 0.88f);
+	m_vec3MoonColour = glm::vec3(1.0f, 1.0f, 0.9843f);
+	m_vec3MoonAmbient = glm::vec3(0.4f, 0.4f, 0.4f);
 	m_vec3MoonDiffuse = glm::vec3(0.1f, 0.1f, 0.1f);
 	m_vec3MoonSpecular = glm::vec3(0.5f, 0.5f, 0.5f);
 
@@ -129,7 +130,7 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 //**********************************************************
 
 	//Ground
-	m_vec3GroundSpecular = glm::vec3(0.2f, 0.2f, 0.2f);
+	m_vec3GroundSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
 	m_fGroundShininess = 16.0f;
 
 	//Cube
@@ -479,12 +480,19 @@ bool FiveCell::setup(std::string csd, GLuint skyboxProg, GLuint soundObjProg, GL
 
 	//load textures
 	std::vector<std::string> textureNames;
-	textureNames.push_back("lakeStarrySky_px.jpg");
-	textureNames.push_back("lakeStarrySky_nx.jpg");
-	textureNames.push_back("lakeStarrySky_py.jpg");
-	textureNames.push_back("lakeStarrySky_ny.jpg");
-	textureNames.push_back("lakeStarrySky_pz.jpg");
-	textureNames.push_back("lakeStarrySky_nz.jpg");
+	//textureNames.push_back("lakeStarrySky_px.jpg");
+	//textureNames.push_back("lakeStarrySky_nx.jpg");
+	//textureNames.push_back("lakeStarrySky_py.jpg");
+	//textureNames.push_back("lakeStarrySky_ny.jpg");
+	//textureNames.push_back("lakeStarrySky_pz.jpg");
+	//textureNames.push_back("lakeStarrySky_nz.jpg");
+	
+	textureNames.push_back("desert3_px.jpg");
+	textureNames.push_back("desert3_nx.jpg");
+	textureNames.push_back("desert3_py.jpg");
+	textureNames.push_back("desert3_ny.jpg");
+	textureNames.push_back("desert3_pz.jpg");
+	textureNames.push_back("desert3_nz.jpg");
 
 	//std::string name1 = texName.append("_rt.tga");
 	//textureNames.push_back(name1);

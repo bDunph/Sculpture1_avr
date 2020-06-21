@@ -94,6 +94,9 @@ kp = 1.9
 asig	wgbowedbar	ampdbfs(-1),	133,	0.7*kSineControlVal,	kp*kSineControlVal,	0.995
 gaOut1 = (asig + asig + asig + asig + asig + asig) * kEnv
 
+kRms	rms	gaOut1
+	chnset	kRms,	"rmsOut"
+
      ;outs asig, asig
 
 endin
@@ -148,6 +151,9 @@ aexc2	mode	aToneOut,	kModeFreq2,	kQFactor2
 aexc2 = aexc2 * iamp 
 
 gaOut1 = (aexc1 + aexc2)/2
+
+kRms	rms	gaOut1
+	chnset	kRms,	"rmsOut"
 
 	;outs	aexc,	aexc
 
@@ -424,13 +430,13 @@ f3 	0 	1024 	19 	0.5 	0.5 	270 	0.5
 
 ;p1	p2	p3	p4	p5	p6	p7	p8	p9	p10	p11	p12	p13	p14	p15	p16	p17	p18	p19	p20	p21	p22	p23	p24
 
-;i1	2	100000	-2		
+i1	2	100000	-2		
 
-;i2	14	2
-;i.	+	2
-;i.	+	2	
+;i2	2	2
+i.	+	2
+i.	+	2	
 ;
-i3	2	10000	
+;i3	2	10000	
 ;i.	+	5
 ;i.	+	5
 ;i.	+	5
@@ -439,11 +445,11 @@ i3	2	10000
 ;i.	+	5
 ;i.	+	2
 ;
-;i5	60	20
+;i5	2	20
 ;i.	+	10
 ;i.	+	5
 ;
-;i6	96	5	0.7
+;i6	2	5	0.7
 ;i.	+	5	0.85
 ;i.	+	5	0.94
 
@@ -452,7 +458,7 @@ i3	2	10000
 ;i.	+	5
 ;i.	+	10000
 
-;i8	133	4
+;i8	2	4
 ;i.	+	4
 ;i.	+	4	
 ;
